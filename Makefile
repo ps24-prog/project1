@@ -47,14 +47,15 @@ $(BUILD_DIR)/nju_universalis: $(OBJS)
 $(BUILD_DIR)/%.o : %.cpp
 	@mkdir -p $(dir $@) && echo + $(CXX) $<
 	@$(CXX) -std=c++14 -c -o $@ $(CXXFLAGS) $(realpath $<)
-	@sed -i 's/C:\/msys64//g' $(patsubst %.o, %.d, $@)
+	@sed -i 's/[A-Z]:\//\/\l&/g' $(patsubst %.o, %.d, $@)
+	@sed -i 's/:\//\//g' $(patsubst %.o, %.d, $@)
 
 $(BUILD_DIR)/%.o : %.c
 	@mkdir -p $(dir $@) && echo + $(CC) $<
 	@$(CC) -std=gnu11 -c -o $@ $(CFLAGS) $(realpath $<)
-	@sed -i 's/C:\/msys64//g' $(patsubst %.o, %.d, $@)
-
-
+	@sed -i 's/[A-Z]:\//\/\l&/g' $(patsubst %.o, %.d, $@)
+	@sed -i 's/:\//\//g' $(patsubst %.o, %.d, $@)
+	
 ifeq ($(shell echo $$OS), Windows_NT)
 
 $(BUILD_DIR)/resources/%.o : resources/%.rc
