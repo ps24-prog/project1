@@ -1,15 +1,33 @@
+# whitelist mode - block everything except what is explicitly allowed
 *
+
+# files
 !.gitignore
 !Makefile
-!source
-!include
-!resources
+
+# file types
 !*.h
 !*.c
 !*.cpp
 !*.md
-!dev
+!*.mk
+
+# directories
+
+# code (general)
+!source
+!include
+
+# resources
+!resources
+
+# scripts
+!scripts
+
+# modules
+!common
 !test
 !wrapper
 !game
 !minitui
+!dev

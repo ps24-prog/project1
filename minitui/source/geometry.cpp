@@ -1,6 +1,7 @@
 #include <minitui.h>
 
 tui_rect global_rect;
+tui_point scr_size = {SCR_HEIGHT, SCR_WIDTH};
 
 bool 
 tui_point::is_in(

@@ -10,7 +10,6 @@ struct tui_widget {
   bool updated;
   
   tui_widget(tui_rect area, tui_widget *parent=NULL);
-
   tui_point position_interpreter(tui_point point) const;
 
   void set_updated() {updated = true;};

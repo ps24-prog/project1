@@ -1,12 +1,20 @@
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
 #include <ansi.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <getopt.h>
+
+#ifdef _WIN64
+#include <windows.h>
+#endif
+
+#ifndef SCR_WIDTH
+#define SCR_WIDTH 100
+#endif
+#ifndef SCR_HEIGHT
+#define SCR_HEIGHT 40
+#endif
 
 static int cmd_help(char** argv, int argc);
 
@@ -51,37 +59,87 @@ static int cmd_debug(char** argv, int argc) {
 
 static int cmd_game(char** argv, int argc) {
 
-#ifdef _WIN32
+#ifdef _WIN64
+
+  bool debug_server = 0;
+  char log_level[25] = "Debug";
+
+  optind = 0;
+  char ch;
+  while ((ch = getopt(argc, argv, "gl:")) != -1) {
+    switch (ch) {
+      case 'g':
+        debug_server = 1;
+        break;
+      case 'l':
+        strcpy(log_level, optarg);
+        break;
+      case '?':
+        printf("Unknown option: %s\n", optopt);
+        break;
+    }
+  }
 
   char cmd[1024], pwd[1024];
   FILE *pwd_f = _popen("cygpath -aw .", "r");
   fscanf(pwd_f, "%s", pwd);
 
-  if (argc > 1 && strcmp(argv[1], "-g") == 0) {
-    sprintf(cmd, "wt --size 100,41 --pos 100,100 gdbserver :8117 %s\\build\\nju_universalis", pwd);
+  if (debug_server) {
+    sprintf(cmd, "wt --size %d,%d --pos 100,100 gdbserver :8117 %s\\build\\nju_universalis -l %s", SCR_WIDTH, SCR_HEIGHT + 1, pwd, log_level);
+    printf("%s\n", cmd);
     system(cmd);
   }
   else {
-    sprintf(cmd, "wt --size 100,41 --pos 100,100 %s\\build\\nju_universalis", pwd);
+    sprintf(cmd, "wt --size %d,%d --pos 100,100 %s\\build\\nju_universalis -l %s", SCR_WIDTH, SCR_HEIGHT + 1, pwd, log_level);
+    printf("%s\n", cmd);
     system(cmd);
   }
+
 #else
 
-  if (argc > 1 && strcmp(argv[1], "-g") == 0) {
+  if (debug_server) {
     system("konsole -e gdbserver :8117 `pwd`/build/nju_universalis -p TerminalColumns=100 -p TerminalRows=40 -p ICON=`pwd`/resources/dbcq.ico 2> /dev/null &");
   }
   else system("konsole -e `pwd`/build/nju_universalis -p TerminalColumns=100 -p TerminalRows=40 -p ICON=`pwd`/resources/dbcq.ico 2> /dev/null &");
 
 #endif
+
   return 0;
 
 }
 
 static int cmd_compile(char **argv, int argc) {
-  if (argc > 1 && strcmp(argv[1], "-c") == 0) {
-    system("make clean");
+  bool clean_before_compile = 0;
+  bool test_mode = 0;
+
+  optind = 0;
+  char ch;
+  while ((ch = getopt(argc, argv, "ct")) != -1) {
+    switch (ch) {
+      case 'c':
+        clean_before_compile = 1;
+        break;
+      case 't':
+        test_mode = 1;
+        break;
+      case '?':
+        printf("Unknown option: %c\n", optopt);
+        break;
+      default:
+        break;
+    }
   }
-  return system("make compile");
+
+  if (clean_before_compile) {
+    system("make clean");
+  } 
+  if (test_mode) {
+    printf("%s\n", "make -j8 test_compile");
+    return system("make -j8 test_compile");
+  } else {
+    printf("%s\n", "make -j8 compile");
+    return system("make -j8 compile");
+  }
 }
 
 static struct {
@@ -90,7 +148,7 @@ static struct {
   int (*handler) (char**, int);
 } cmd_table[] = {
   { "help", "Display information about all supported commands", cmd_help },
-  { "game", "Activate the game", cmd_game},
+  { "game", "Launch the game", cmd_game},
   { "log",  "Display log information", cmd_log},
   { "debug", "Debug the program", cmd_debug},
   { "compile", "Compile the program, use [-c] to clean before compilation", cmd_compile},
@@ -156,7 +214,7 @@ static int cmd_help(char** argv, int argc) {
           if (!flag[i]) {
             printf("%s\t - %s\n", cmd_table[i].name, cmd_table[i].description);
           }
-          flag[i] = true;
+          flag[i] = 1;
           break;
         }
       }

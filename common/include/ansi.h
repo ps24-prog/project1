@@ -14,17 +14,20 @@
 #define ANSI_RED_NG ANSI_CSI "41m"
 #define ANSI_RED_HF ANSI_CSI "91m"
 #define ANSI_RED_HG ANSI_CSI "101m"
-#define ANSI_RED ANSI_RED_NF
+#define ANSI_RED    ANSI_RED_NF
 
 #define ANSI_BLUE_NF ANSI_CSI "34m"
 #define ANSI_BLUE ANSI_BLUE_NF
+
+#define ANSI_DEFAULT ANSI_CSI "39m"
+#define ANSI_YELLOW ANSI_CSI "33m"
+#define ANSI_GREEN ANSI_CSI "34m"
 
 #define ANSI_WHITE_HG ANSI_CSI "107m"
 
 #define ANSI_PACK(...) __VA_ARGS__
 #define ANSI_FMT(original, fmt) fmt original ANSI_RST
 
-// 有点脱裤子放屁
 #define ANSI_CMD(...) printf(__VA_ARGS__)
 
 #define ANSI_MODE_ENABLE "h"
@@ -35,6 +38,7 @@
 #define ANSI_PASTE "?2004"
 #define ANSI_MOUSE "?1000"
 #define ANSI_SGR "?1006"
+#define ANSI_SGR_PIXEL "?1016"
 #define ANSI_ANY_EVENT "?1003"
 
 #define ANSI_ENABLE(ANSI_MODE) ANSI_CMD(ANSI_CSI ANSI_MODE ANSI_MODE_ENABLE)
@@ -65,5 +69,8 @@ inline static void ansi_icon(const char *icon) {
   ANSI_CMD(ANSI_OSC "1;%s\x7", icon);
 }
 
+inline static void ansi_get_size() {
+  ANSI_CMD(ANSI_CSI "18t");
+}
 
 #endif

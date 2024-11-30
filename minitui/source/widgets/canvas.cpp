@@ -54,8 +54,7 @@ tui_canvas::draw(
   auto canvas_unit = (*this)[point.x][point.y];
   auto formatter = *canvas_unit.formatter;
 
-  foreset(formatter.fore_color);
-  backset(formatter.back_color);
+  formatter.set();
   putchar(*canvas_unit.content);
   
   ANSI_CMD(ANSI_RST);

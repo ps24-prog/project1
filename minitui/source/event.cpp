@@ -7,7 +7,7 @@
 #include <ui.h>
 // tui_event_t 
 
-bool mouse_enabled = false;
+bool mouse_enabled = true;
 
 static
 char
@@ -21,26 +21,60 @@ tui_getchar() {
 }
 
 static
+std::pair<int, char>
+tui_getansi_int() {
+  int ret = 0;
+  char ch = tui_getchar();
+  while (isdigit(ch)) {
+    ret = ret * 10 + ch - '0';
+    ch = tui_getchar();
+  }
+  return std::make_pair(ret, ch);
+}
+
+static
 tui_event *
 tui_get_ansi_event() {
   Debug("Enter an ansi event");
   char ch = tui_getchar();
   switch (ch) 
   {
+  // CSI
   case '[': {
     ch = tui_getchar();
     switch (ch) {
+    case 'A':
+    case 'B':
+    case 'C':
+    case 'D': {
+      Debug("Get a arrow key event");
+      auto event = CREATE_OBJ(tui_event);
+      auto kbd_event = CREATE_OBJ(tui_kbd_event);
+      
+      event->event_type = TUI_KEYBD_EVENT;
+      event->event_body = kbd_event;
+      kbd_event->code = ch;
+      return event;
+    }
     case '<': {
       Debug("Get a mouse event");
-      char mouse_str[512];
-      int mouse_str_len;
-      while(ch != 'm' && ch != 'M') {
-        ch = tui_getchar();
-        mouse_str[mouse_str_len++] = ch;
-      }
-      auto event = CREATE_OBJ(tui_event);
-      auto mouse_event = CREATE_OBJ(tui_mouse_event);
-      return NULL;
+      auto arg_type = tui_getansi_int();
+      auto arg_y = tui_getansi_int();
+      auto arg_x = tui_getansi_int();
+      
+      tui_assert(arg_type.second == ';');
+      tui_assert(arg_y.second == ';');
+      tui_assert(arg_x.second == 'm' || arg_x.second == 'M');
+
+      auto mouse_event = new tui_mouse_event(
+        arg_type.first, 
+        arg_x.first, 
+        arg_y.first, 
+        arg_x.second == 'M'
+      );
+      mouse_event->log_mouse_event(mouse_event);
+      auto event = new tui_event(TUI_MOUSE_EVENT, mouse_event);
+      return event;
     }
     default: {
       if (isdigit(ch)) {
@@ -74,7 +108,9 @@ tui_get_ansi_event() {
 tui_event *
 tui_get_event() {
 #ifdef _WIN64
-  int is_kbd = _kbhit();
+  if (!_kbhit()) {
+    return NULL;
+  }
 #endif
   char ch = tui_getchar();
   switch (ch)
@@ -85,6 +121,16 @@ tui_get_event() {
   }
 
   case '\x3': {
+    auto event = CREATE_OBJ(tui_event);
+    auto exit_event = CREATE_OBJ(tui_exit_event);
+    
+    event->event_type = TUI_EXIT_EVENT;
+    event->event_body = exit_event;
+    exit_event->retcode = 0;
+    return event;
+  }
+
+  case 't': {
     auto event = CREATE_OBJ(tui_event);
     auto exit_event = CREATE_OBJ(tui_exit_event);
     
@@ -109,11 +155,34 @@ tui_get_event() {
   return NULL;
 }
 
+static
+int
+tui_test_exec() {
+  while (true) {
+    char ch = tui_getchar();
+    if (ch == ESC_CODE) {
+      auto event = tui_get_ansi_event();
+      if (event->event_type == TUI_MOUSE_EVENT) {
+        // log_mouse_event((tui_mouse_event *) event->event_body);
+      }
+    }
+    if (ch == '\x3') {
+      Info("Get a ^C");
+      return 0;
+    }
+  }
+}
+
 int 
 tui_exec() {
 
   Debug("start game mainloop");
   
+#ifdef TEST_MODE
+  Info("Test mode");
+  return tui_test_exec();
+#endif
+
   // There should be a top widget
   if (!wl_head) {
     Error("No top widget");
@@ -131,7 +200,7 @@ tui_exec() {
 
     tui_event *event = tui_get_event();
     if (!event) {
-      Debug("A NULL event returned.");
+      // Debug("A NULL event returned.");
       continue;
     }
     
@@ -142,27 +211,30 @@ tui_exec() {
 
     if (event->event_type == TUI_MOUSE_EVENT && !mouse_enabled) continue;
 
-    tui_widget *current = focus;
-
     // find the mouse's target
     if (event->event_type == TUI_MOUSE_EVENT) {
       auto mouse_event = (tui_mouse_event *) event->event_body;
-      tui_point mouse_point = (tui_point) {
-        .x = mouse_event->x,
-        .y = mouse_event->y
-      };
+      tui_point mouse_point = mouse_event->get_point();
 
       for (auto it = wl_head; it; it = it->next) {
+        Debug("Checking %p", it->body);
+        it->body->area.log_rect();
         if (mouse_point.is_in(it->body->area)) {
           // change focus if it is a click
           if ((mouse_event->type == MOUSE_LEFT_CLICK || mouse_event->type == MOUSE_RIGHT_CLICK || mouse_event->type == MOUSE_MID_CLICK) && mouse_event->ispress) {
+            if (focus != it->body) {
+              Debug("Change focus to %p", it->body);
+            } else {
+              Debug("Focus remains %p", it->body);
+            }
             focus = it->body;
           }
-          current = it->body;
           break;
         }
       }
     }
+
+    tui_widget *current = focus;
     
     while (current && event) {
       event = current->on_event(event);

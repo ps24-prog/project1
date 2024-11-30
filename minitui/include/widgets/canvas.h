@@ -22,7 +22,6 @@ struct tui_canvas : public tui_widget {
     tui_canvas_unit operator [] (int y) const;
   };
 
-
   tui_canvas_line operator [] (int x) const;
   tui_canvas(tui_rect area, tui_widget *parent=NULL);
   virtual ~tui_canvas();

@@ -26,6 +26,18 @@ mainscr::on_event(
       event->event_body = exit_event;
       return event;
     }
+    if (kbd_event->code == 'p' || kbd_event->code == 'P') {
+      tui_ncanvas *ncanvas_0 = new tui_ncanvas(
+        (tui_rect) {(tui_point) {SCR_HEIGHT - 5, SCR_WIDTH / 2}, (tui_point) {SCR_HEIGHT - 1, SCR_WIDTH - 1}},
+        this
+      );
+      tui_reg_widget(ncanvas_0);
+      
+      FREE_EVENT_BODY(event);
+      return NULL;
+    }
+  } else {
+    // return event;
   }
   FREE_EVENT(event);
   return NULL;
@@ -35,8 +47,8 @@ void
 mainscr::set_global_formatter(
   tui_formatter formatter
 ) {
-  for (int i = 0; i < GLOB_HEIGHT; i++)
-    for (int j = 0; j < GLOB_WIDTH; j++) {
+  for (int i = 0; i < area.height(); i++)
+    for (int j = 0; j < area.width(); j++) {
       auto unit = (*this)[i][j];
       *(unit.formatter) = formatter;
     }

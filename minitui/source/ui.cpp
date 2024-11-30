@@ -38,7 +38,16 @@ tui_delete_widget (
   }
 }
 
-tui_widget *full_map[GLOB_HEIGHT][GLOB_WIDTH];
+tui_widget ***full_map;
+
+void tui_ui_init() {
+  // get full_map
+  full_map = (tui_widget ***) malloc(sizeof(tui_widget **) * scr_size.x);
+  for (int i = 0; i < scr_size.x; i++) {
+    full_map[i] = (tui_widget **) malloc(sizeof(tui_widget *) * scr_size.y);
+  }
+  return ;
+}
 
 void
 tui_reg_widget(
@@ -51,6 +60,7 @@ tui_reg_widget(
   }
   tui_append_widget(widget);
   widget->set_updated();
+  focus = widget;
 }
 
 void
@@ -85,8 +95,8 @@ tui_draw() {
   Debug("Trigger drawing!");
   ansi_cursor_set(1, 1);
   fflush(stdout);
-  for (int i = 0; i < GLOB_HEIGHT; i++) {
-    for (int j = 0; j < GLOB_WIDTH; j++) {
+  for (int i = 0; i < SCR_HEIGHT; i++) {
+    for (int j = 0; j < SCR_WIDTH; j++) {
       if (!full_map[i][j]) {
         putchar(' ');
         continue;
