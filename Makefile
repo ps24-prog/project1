@@ -59,17 +59,20 @@ $(BUILD_DIR)/%.o : %.cpp
 	@$(CXX) -std=c++14 -c -o $@ $(CXXFLAGS) $<
 # convert windows paths to unix paths in dependency files
 ifeq ($(shell echo $$OS), Windows_NT)
+	@$(CXX) -std=c++14 -c -o $@ $(CXXFLAGS) $<
 	@sed -i 's/[A-Z]:\//\/\l&/g' $(patsubst %.o, %.d, $@)
 	@sed -i 's/:\//\//g' $(patsubst %.o, %.d, $@)
 endif
 
 $(BUILD_DIR)/%.o : %.c
 	@mkdir -p $(dir $@) && echo + $(CC) $<
-	@$(CC) -std=gnu11 -c -o $@ $(CFLAGS) $<
 # convert windows paths to unix paths in dependency files
 ifeq ($(shell echo $$OS), Windows_NT)
+	@$(CC) -c -o $@ $(CXXFLAGS) $(shell cygpath -w $<)
 	@sed -i 's/[A-Z]:\//\/\l&/g' $(patsubst %.o, %.d, $@)
 	@sed -i 's/:\//\//g' $(patsubst %.o, %.d, $@)
+else
+	@$(CC) -std=gnu11 -c -o $@ $(CFLAGS) $<
 endif
 	
 ifeq ($(shell echo $$OS), Windows_NT)

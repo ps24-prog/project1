@@ -153,7 +153,7 @@ static struct {
   { "debug", "Debug the program", cmd_debug},
   { "compile", "Compile the program, use [-c] to clean before compilation", cmd_compile},
 };
-#define ARRLEN(arr) (int)(sizeof(arr) / sizeof(arr[0]))
+// #define ARRLEN(arr) (int)(sizeof(arr) / sizeof(arr[0]))
 #define CNT_CMD ARRLEN(cmd_table)
 
 void cmd_mainloop() {

@@ -191,48 +191,33 @@ tui_exec() {
   focus = wl_head->body;
 
   while (true) {
-    for (auto it = wl_head; it; it = it->next) {
-      if (it->body->get_updated()) {
-        tui_draw();
+    tui_draw();
+
+    tui_event *event = tui_get_event();
+    if (!event) {
+      // Trace("skip event");
+      continue;
+    }
+    
+    switch (event->event_type) {
+      case TUI_EXIT_EVENT: {
+        auto exit_event = (tui_exit_event *) event->event_body;
+        return exit_event->retcode;
+        break;
+      }
+      case TUI_MOUSE_EVENT: {
+        if (mouse_enabled) {
+          auto mouse_event = (tui_mouse_event *) event->event_body;
+          tui_point mouse_point = mouse_event->get_point();
+          if ((mouse_event->type == MOUSE_LEFT_CLICK
+            || mouse_event->type == MOUSE_RIGHT_CLICK 
+            || mouse_event->type == MOUSE_MID_CLICK) && mouse_event->ispress)
+            tui_focus_on(mouse_point);
+        } else continue;
         break;
       }
     }
 
-    tui_event *event = tui_get_event();
-    if (!event) {
-      // Debug("A NULL event returned.");
-      continue;
-    }
-    
-    if (event->event_type == TUI_EXIT_EVENT) {
-      auto exit_event = (tui_exit_event *) event->event_body;
-      return exit_event->retcode;
-    }
-
-    if (event->event_type == TUI_MOUSE_EVENT && !mouse_enabled) continue;
-
-    // find the mouse's target
-    if (event->event_type == TUI_MOUSE_EVENT) {
-      auto mouse_event = (tui_mouse_event *) event->event_body;
-      tui_point mouse_point = mouse_event->get_point();
-
-      for (auto it = wl_head; it; it = it->next) {
-        Debug("Checking %p", it->body);
-        it->body->area.log_rect();
-        if (mouse_point.is_in(it->body->area)) {
-          // change focus if it is a click
-          if ((mouse_event->type == MOUSE_LEFT_CLICK || mouse_event->type == MOUSE_RIGHT_CLICK || mouse_event->type == MOUSE_MID_CLICK) && mouse_event->ispress) {
-            if (focus != it->body) {
-              Debug("Change focus to %p", it->body);
-            } else {
-              Debug("Focus remains %p", it->body);
-            }
-            focus = it->body;
-          }
-          break;
-        }
-      }
-    }
 
     tui_widget *current = focus;
     
@@ -246,7 +231,7 @@ tui_exec() {
       current = next;
     }
 
-    // top widget exits, end the exection loop
+    // root widget exits, end the exection loop
     if (event && event->event_type == TUI_EXIT_EVENT) {
       auto exit_event = (tui_exit_event *) event->event_body;
       return exit_event->retcode;

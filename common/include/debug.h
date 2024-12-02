@@ -5,12 +5,12 @@
 
 enum tui_log_level {
   ALL,
-  Trace,
-  Debug,
-  Info,
-  Warn,
-  Error,
-  Fatal
+  TRACE,
+  DEBUG,
+  INFO,
+  WARN,
+  ERR,
+  FATAL
 };
 
 extern const char *log_level_names[];
@@ -26,12 +26,12 @@ extern int log_level;
 #define Plain(fmt, ...) _Log(fmt "\n", ## __VA_ARGS__)
 
 
-#define Info(fmt, ...) Log(Info, ANSI_BLUE, fmt, ## __VA_ARGS__)
-#define Debug(fmt, ...) Log(Debug, ANSI_BLUE, fmt, ## __VA_ARGS__)
-#define Trace(fmt, ...) Log(Trace, ANSI_DEFAULT, fmt, ## __VA_ARGS__)
-#define Warn(fmt, ...) Log(Warn, ANSI_YELLOW, fmt, ## __VA_ARGS__)
+#define Info(fmt, ...) Log(INFO, ANSI_BLUE, fmt, ## __VA_ARGS__)
+#define Debug(fmt, ...) Log(DEBUG, ANSI_BLUE, fmt, ## __VA_ARGS__)
+#define Trace(fmt, ...) Log(TRACE, ANSI_DEFAULT, fmt, ## __VA_ARGS__)
+#define Warn(fmt, ...) Log(WARN, ANSI_YELLOW, fmt, ## __VA_ARGS__)
 #define Error(fmt, ...) do {\
-  Log(5, ANSI_RED, fmt, ## __VA_ARGS__); \
+  Log(ERR, ANSI_RED, fmt, ## __VA_ARGS__); \
   exit(-1); \
 } while(0)
 

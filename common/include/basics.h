@@ -33,7 +33,7 @@
 #include <unistd.h>
 #endif
 
-// #define ARRLEN(arr) (sizeof(arr) / sizeof(arr[0]))
+#define ARRLEN(arr) (sizeof(arr) / sizeof(arr[0]))
 
 #define CREATE_OBJ(type) ((type *) malloc(sizeof(type)))
 

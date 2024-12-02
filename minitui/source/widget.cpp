@@ -17,3 +17,14 @@ tui_widget::position_interpreter (
   }
   return point - area.start;
 }
+
+tui_point
+tui_widget::position_mapper (
+  tui_point local_point
+) const {
+  auto res_point = local_point + area.start;
+  if (!res_point.is_in(area)) {
+    Warn("Point not in widget!");
+  }
+  return res_point;
+}

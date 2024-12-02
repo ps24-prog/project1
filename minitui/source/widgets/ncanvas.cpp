@@ -58,6 +58,9 @@ tui_ncanvas::on_event(
     }
   } else if (event->event_type == TUI_MOUSE_EVENT) {
     auto mouse_event = (tui_mouse_event *) event->event_body;
+    if (!mouse_event->get_point().is_in(this->area))
+      return event;
+    
     if (mouse_event->type == MOUSE_LEFT_CLICK && mouse_event->ispress) {
       boff += 16;
       set_updated();

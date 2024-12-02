@@ -3,12 +3,12 @@
 
 const char *log_level_names[] = {
   [ALL] = "All",
-  [Trace] = "Trace",
-  [Debug] = "Debug",
-  [Info] = "Info",
-  [Warn] = "Warn",
-  [Error] = "Error",
-  [Fatal] = "Fatal",
+  [TRACE] = "Trace",
+  [DEBUG] = "Debug",
+  [INFO] = "Info",
+  [WARN] = "Warn",
+  [ERR] = "Error",
+  [FATAL] = "Fatal",
 };
 
 int log_level = ALL;

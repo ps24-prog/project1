@@ -8,11 +8,14 @@ struct tui_widget_list {
   tui_widget_list *next;
 };
 
-extern tui_widget_list *wl_head, *wl_tail;
+extern tui_widget_list *wl_head;
+extern long long draw_counter;
 
 void tui_ui_init();
+void tui_focus_on(tui_point point);
 void tui_draw();
 void tui_reg_widget(tui_widget *widget);
 void tui_erase_widget(tui_widget *widget);
+void tui_reset_widget(tui_widget *widget, tui_rect area);
 
 #endif

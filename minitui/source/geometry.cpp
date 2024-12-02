@@ -28,6 +28,30 @@ tui_point::operator - (
   };
 }
 
+tui_point
+tui_point::operator + (
+  const tui_point &b
+) const {
+  return (tui_point) {
+    .x = x + b.x,
+    .y = y + b.y
+  };
+}
+
+bool 
+tui_point::operator == (
+  const tui_point &b
+) const {
+  return x == b.x && y == b.y;
+}
+
+bool
+tui_rect::operator == (
+  const tui_rect &b
+) const {
+  return start == b.start && end == b.end;
+}
+
 int
 tui_rect::height() const {
   return end.x - start.x + 1;
@@ -37,3 +61,4 @@ int
 tui_rect::width() const {
   return end.y - start.y + 1;
 }
+

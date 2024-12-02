@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
   );
 
   tui_ncanvas *ncanvas_0 = new tui_ncanvas(
-    (tui_rect) {(tui_point) {SCR_HEIGHT - 5, SCR_WIDTH / 2}, (tui_point) {SCR_HEIGHT - 1, SCR_WIDTH - 1}},
+    (tui_rect) {(tui_point) {scr_size.x - 5, scr_size.y / 2}, (tui_point) {scr_size.x - 1, scr_size.y - 1}},
     mainscr_0
   );
   tui_reg_widget(ncanvas_0);
