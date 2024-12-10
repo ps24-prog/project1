@@ -5,7 +5,15 @@ tui_init(int argc, char **argv) {
   tui_process_args(argc, argv);
   tui_debug_init();
   tui_terminal_init();
+  
+  Info("initing ui system...");
   tui_ui_init();
+
+  Info("initing widget system...");
+  tui_widget_init();
+
+  Info("launch threads...");
+  tui_threads_init();
 }
 
 void tui_process_args(int argc, char **argv) {

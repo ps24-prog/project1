@@ -17,29 +17,22 @@ mainscr::on_event(
   }
   if (event->event_type == TUI_KEYBD_EVENT) {
     auto kbd_event = (tui_kbd_event *) event->event_body;
-    if (kbd_event->code == 'q' || kbd_event->code == 'Q') {
-      FREE_EVENT_BODY(event);
-      auto exit_event = CREATE_OBJ(tui_exit_event);
-      exit_event->retcode = 0;
-      
-      event->event_type = TUI_EXIT_EVENT;
-      event->event_body = exit_event;
-      return event;
-    }
-    if (kbd_event->code == 'p' || kbd_event->code == 'P') {
-      tui_ncanvas *ncanvas_0 = new tui_ncanvas(
-        (tui_rect) {(tui_point) {SCR_HEIGHT - 5, SCR_WIDTH / 2}, (tui_point) {SCR_HEIGHT - 1, SCR_WIDTH - 1}},
-        this
+    if (kbd_event->check_key('q')) {
+      delete event;
+      return new tui_event(
+        TUI_EXIT_EVENT, 
+        new tui_exit_event(0)
       );
-      tui_reg_widget(ncanvas_0);
-      
-      FREE_EVENT_BODY(event);
+    }
+    if (kbd_event->check_key('p')) {
+      create_widget(new tui_ncanvas(
+        (tui_rect) {(tui_point) {SCR_HEIGHT - 5, SCR_WIDTH / 2}, (tui_point) {SCR_HEIGHT - 1, SCR_WIDTH - 1}}
+      ));
+      delete event;
       return NULL;
     }
-  } else {
-    // return event;
   }
-  FREE_EVENT(event);
+  delete event;
   return NULL;
 }
 

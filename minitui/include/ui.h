@@ -1,6 +1,8 @@
 #ifndef UI_H__
 #define UI_H__
 
+struct tui_widget;
+
 extern tui_widget *focus;
 
 struct tui_widget_list {

@@ -26,9 +26,9 @@ ifdef TEST
   DEFINES += TEST_MODE
 endif
 
-COMMON_FLAGS = -O2 -ggdb -MMD -Wall -Wextra $(NO_WARN_FLAGS) $(INC_FLAG) $(addprefix -D, $(DEFINES))
+COMMON_FLAGS = -ggdb -MMD -Wall -Wextra $(NO_WARN_FLAGS) $(INC_FLAG) $(addprefix -D, $(DEFINES))
 
-CFLAGS = $(COMMON_FLAGS)
+CFLAGS = $(COMMON_FLAGS) -std=gnu11
 CXXFLAGS = $(COMMON_FLAGS) -std=c++20
 
 # compile tools
@@ -56,30 +56,31 @@ include scripts/gsetting.mk
 
 $(BUILD_DIR)/%.o : %.cpp
 	@mkdir -p $(dir $@) && echo + $(CXX) $<
-	@$(CXX) -std=c++14 -c -o $@ $(CXXFLAGS) $<
 # convert windows paths to unix paths in dependency files
 ifeq ($(shell echo $$OS), Windows_NT)
-	@$(CXX) -std=c++14 -c -o $@ $(CXXFLAGS) $<
+	@$(CXX) -c -o $@ $(CXXFLAGS) $(shell cygpath -w $<)
 	@sed -i 's/[A-Z]:\//\/\l&/g' $(patsubst %.o, %.d, $@)
 	@sed -i 's/:\//\//g' $(patsubst %.o, %.d, $@)
+else
+	@$(CXX) -c -o $@ $(CXXFLAGS) $<
 endif
 
 $(BUILD_DIR)/%.o : %.c
 	@mkdir -p $(dir $@) && echo + $(CC) $<
 # convert windows paths to unix paths in dependency files
 ifeq ($(shell echo $$OS), Windows_NT)
-	@$(CC) -c -o $@ $(CXXFLAGS) $(shell cygpath -w $<)
+	@$(CC) -c -o $@ $(CFLAGS) $(shell cygpath -w $<)
 	@sed -i 's/[A-Z]:\//\/\l&/g' $(patsubst %.o, %.d, $@)
 	@sed -i 's/:\//\//g' $(patsubst %.o, %.d, $@)
 else
-	@$(CC) -std=gnu11 -c -o $@ $(CFLAGS) $<
+	@$(CC) -c -o $@ $(CFLAGS) $<
 endif
 	
 ifeq ($(shell echo $$OS), Windows_NT)
 
 $(BUILD_DIR)/resources/%.o : resources/%.rc
 	@mkdir -p $(dir $@) && echo + windres $<
-	@windres -i $(realpath $<) -o $@
+	@windres -i $(shell cygpath -w $<) -o $@
 
 endif
 

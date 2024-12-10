@@ -5,7 +5,7 @@
 
 struct mainscr : public tui_canvas {
 
-  mainscr(tui_rect area, tui_widget *parent);
+  mainscr(tui_rect area, tui_widget *parent=NULL);
   virtual ~mainscr() {}
   
   virtual tui_event *on_event(tui_event *event);

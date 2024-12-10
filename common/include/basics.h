@@ -12,6 +12,11 @@
 #include <queue>
 #include <vector>
 #include <algorithm>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <chrono>
+#include <functional>
 
 #else
 

@@ -23,7 +23,7 @@ tui_msgbox::on_event(
     Warn("A NULL event given!");
   }
   if (event->event_type == TUI_KEYBD_EVENT) {
-    if (event->event_body) {
+    if (!event->event_body) {
       Warn("An empty event given!");
     }
     auto kbd_event = (tui_kbd_event *) event->event_body;
@@ -32,13 +32,8 @@ tui_msgbox::on_event(
     switch (code)
     {
     case 'y': case 'n':  case 'c': {
-      tui_exit_event *exit_event = (tui_exit_event *) malloc(sizeof(tui_exit_event));
-      exit_event->retcode = code;
-      if (event->event_body)
-        free(event->event_body);
-      event->event_type = TUI_EXIT_EVENT;
-      event->event_body = exit_event;
-      return event;
+      delete event;
+      return new tui_event(TUI_EXIT_EVENT, new tui_exit_event(code));
     }
     default:
       break;

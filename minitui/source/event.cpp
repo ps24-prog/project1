@@ -5,7 +5,6 @@
 #include <minitui.h>
 #include <basics.h>
 #include <ui.h>
-// tui_event_t 
 
 bool mouse_enabled = true;
 
@@ -48,12 +47,12 @@ tui_get_ansi_event() {
     case 'C':
     case 'D': {
       Debug("Get a arrow key event");
-      auto event = CREATE_OBJ(tui_event);
-      auto kbd_event = CREATE_OBJ(tui_kbd_event);
+
+      auto event = new tui_event(
+        TUI_KEYBD_EVENT, 
+        new tui_kbd_event(ch)
+      );
       
-      event->event_type = TUI_KEYBD_EVENT;
-      event->event_body = kbd_event;
-      kbd_event->code = ch;
       return event;
     }
     case '<': {
@@ -66,14 +65,13 @@ tui_get_ansi_event() {
       tui_assert(arg_y.second == ';');
       tui_assert(arg_x.second == 'm' || arg_x.second == 'M');
 
-      auto mouse_event = new tui_mouse_event(
+      auto event = new tui_event(TUI_MOUSE_EVENT, new tui_mouse_event(
         arg_type.first, 
         arg_x.first, 
         arg_y.first, 
         arg_x.second == 'M'
-      );
-      mouse_event->log_mouse_event(mouse_event);
-      auto event = new tui_event(TUI_MOUSE_EVENT, mouse_event);
+      ));
+      tui_mouse_event::log_mouse_event((tui_mouse_event *) event->event_body);
       return event;
     }
     default: {
@@ -107,11 +105,7 @@ tui_get_ansi_event() {
 
 tui_event *
 tui_get_event() {
-#ifdef _WIN64
-  if (!_kbhit()) {
-    return NULL;
-  }
-#endif
+
   char ch = tui_getchar();
   switch (ch)
   {
@@ -121,34 +115,18 @@ tui_get_event() {
   }
 
   case '\x3': {
-    auto event = CREATE_OBJ(tui_event);
-    auto exit_event = CREATE_OBJ(tui_exit_event);
-    
-    event->event_type = TUI_EXIT_EVENT;
-    event->event_body = exit_event;
-    exit_event->retcode = 0;
-    return event;
-  }
-
-  case 't': {
-    auto event = CREATE_OBJ(tui_event);
-    auto exit_event = CREATE_OBJ(tui_exit_event);
-    
-    event->event_type = TUI_EXIT_EVENT;
-    event->event_body = exit_event;
-    exit_event->retcode = 0;
-    return event;
+    return new tui_event(
+      TUI_EXIT_EVENT, 
+      new tui_exit_event(0)
+    );
   }
 
   default: {
     Debug("Get a key!");
-    auto event = CREATE_OBJ(tui_event);
-    auto kbd_event = CREATE_OBJ(tui_kbd_event);
-
-    event->event_type = TUI_KEYBD_EVENT;
-    event->event_body = kbd_event;
-    kbd_event->code = ch;
-    return event;
+    return new tui_event(
+      TUI_KEYBD_EVENT, 
+      new tui_kbd_event(ch)
+    );
   }
 
   }
@@ -176,6 +154,8 @@ tui_test_exec() {
 int 
 tui_exec() {
 
+  int final_retcode = 0;
+
   Debug("start game mainloop");
   
 #ifdef TEST_MODE
@@ -183,27 +163,36 @@ tui_exec() {
   return tui_test_exec();
 #endif
 
-  // There should be a top widget
+  // There should be a root widget
   if (!wl_head) {
-    Error("No top widget");
+    Error("No root widget");
   }
-  // set top widget as default focus
+  // set root widget as default focus
   focus = wl_head->body;
 
   while (true) {
     tui_draw();
 
-    tui_event *event = tui_get_event();
-    if (!event) {
-      // Trace("skip event");
+    if (gbl_event_queue.empty()) {
       continue;
+    }
+
+    tui_event *event = gbl_event_queue.pop_event();
+    if (!event) {
+      Error("Event is NULL");
     }
     
     switch (event->event_type) {
       case TUI_EXIT_EVENT: {
-        auto exit_event = (tui_exit_event *) event->event_body;
-        return exit_event->retcode;
-        break;
+        final_retcode = \
+        ((tui_exit_event *) event->event_body)->retcode;
+        delete event;
+        return final_retcode;
+      }
+      case TUI_TIMER_INTERUPTER_EVENT: {
+        tui_timer::handle();
+        delete event;
+        continue;
       }
       case TUI_MOUSE_EVENT: {
         if (mouse_enabled) {
@@ -213,35 +202,77 @@ tui_exec() {
             || mouse_event->type == MOUSE_RIGHT_CLICK 
             || mouse_event->type == MOUSE_MID_CLICK) && mouse_event->ispress)
             tui_focus_on(mouse_point);
-        } else continue;
+        } else {
+          delete event;
+          continue;
+        }
         break;
       }
     }
 
-
     tui_widget *current = focus;
-    
+
     while (current && event) {
+      // invariant: event is not NULL and not TUI_EXIT_EVENT
+      assert(event);
+      assert(event->event_type != TUI_EXIT_EVENT);
+      
       event = current->on_event(event);
       tui_widget *next = current->parent;
-      if (event && event->event_type == TUI_EXIT_EVENT) {
-        tui_erase_widget(current);
-        delete current;
+      // invariant: event is targeted to next widget
+      // next event is TUI_EXIT_EVENT, process next widget in advance
+      while (event && event->event_type == TUI_EXIT_EVENT) {
+        // invariant: event is TUI_EXIT_EVENT
+        // invariant: the widget to be deleted is the current widget
+        if (next) {
+          current->retcode = \
+          ((tui_exit_event *) event->event_body)->retcode;
+          delete event;
+          // next widget should process the exit event
+          event = next->on_child_exit(current);
+          // delete current and update `current` & `next` to meet the invariant
+          assert(!current->deleted);
+          tui_widget::delete_widget(current, true);
+          current = next;
+          next = next->parent;
+        } else {
+          assert(current == root);
+          final_retcode = \
+          ((tui_exit_event *) event->event_body)->retcode;
+          tui_widget::delete_widget(current, true);
+          current = next = root = NULL;
+          delete event;
+          event = NULL;
+          break;
+        }
       }
+      // invariant: event is not TUI_EXIT_EVENT 
+      // invariant: event is targeted to next widget
       current = next;
     }
 
     // root widget exits, end the exection loop
-    if (event && event->event_type == TUI_EXIT_EVENT) {
-      auto exit_event = (tui_exit_event *) event->event_body;
-      return exit_event->retcode;
+    if (!root) {
+      return final_retcode;
     }
 
-    if (event) {
-      if (event->event_body) free(event->event_body);
-      free(event);
-    }
+    delete event;
   }
   // Impossible
   return -1;
+}
+
+tui_event::~tui_event() {
+  switch(event_type) {
+    case TUI_PASTE_EVENT: {
+      delete ((tui_paste_event *) event_body);
+      break;
+    }
+    default: {
+      // only free memory allocated, no destruction function called
+      // free(NULL) is valid
+      free(event_body);
+      break;
+    }
+  }
 }

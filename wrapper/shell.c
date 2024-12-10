@@ -75,7 +75,7 @@ static int cmd_game(char** argv, int argc) {
         strcpy(log_level, optarg);
         break;
       case '?':
-        printf("Unknown option: %s\n", optopt);
+        printf("Unknown option: %c\n", optopt);
         break;
     }
   }

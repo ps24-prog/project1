@@ -3,11 +3,8 @@
 #include <minitui.h>
 #include <mainscr.h>
 
-tui_widget *reg_mainscr(tui_point start, tui_point end, const char *msg) {
-  auto mainscr_0 = new mainscr(
-    (tui_rect) {start, end},
-    NULL
-  );
+tui_widget *reg_mainscr(tui_point head, tui_point tail, const char *msg) {
+  auto mainscr_0 = new mainscr(tui_rect(head, tail));
   mainscr_0->set_global_formatter(
     tui_formatter(0x00ff0000u, 0x00ffffffu)
   );
@@ -17,7 +14,7 @@ tui_widget *reg_mainscr(tui_point start, tui_point end, const char *msg) {
     tui_formatter(0x0063065fu, 0x00ffffffu)
   );
 
-  tui_reg_widget(mainscr_0);
+  root->create_widget(mainscr_0);
   return mainscr_0;
 }
 
@@ -32,12 +29,9 @@ int main(int argc, char *argv[]) {
   );
 
   tui_ncanvas *ncanvas_0 = new tui_ncanvas(
-    (tui_rect) {(tui_point) {scr_size.x - 5, scr_size.y / 2}, (tui_point) {scr_size.x - 1, scr_size.y - 1}},
-    mainscr_0
+    tui_rect(tui_point(scr_size.x - 5, scr_size.y / 2), global_rect.tail)
   );
-  tui_reg_widget(ncanvas_0);
-
-  
+  mainscr_0->create_widget(ncanvas_0);
 
   int ret_value = tui_exec();
   if (ret_value != 0)

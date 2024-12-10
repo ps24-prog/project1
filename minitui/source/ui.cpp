@@ -3,7 +3,7 @@
 /*
   UI SYSTEM
 
-  There is a linked list for all visible widgets called widget list, the head of the list is `wl_head`, the closer a widget is to the head, the higher it is in the screen (higher widgets will "cover" lower widgets).
+  There is a linked list for all visible widgets called widget list, the head of the list is `wl_head`, the closer a widget is to the head, the higher it is in the screen (higher widgets will "cover" lower widgets). The list gives the height of widgets in the screen with contrast to the hierarchy given by widgets' parent-children relations.
 
   There is a 2D array of pointers to widgets of the same size as the screen, `full_map`, where the pointer in each postion points to the widget that is shown (i.e. highest) there.
 
@@ -64,12 +64,23 @@ tui_delete_widget (
 
 tui_widget ***full_map;
 
-void tui_ui_init() {
+static
+tui_widget *&
+full_map_at(tui_point point) {
+  return full_map[point.x][point.y];
+}
+
+void 
+tui_ui_init() {
   // get full_map
   full_map = (tui_widget ***) malloc(sizeof(tui_widget **) * scr_size.x);
   for (int i = 0; i < scr_size.x; i++) {
     full_map[i] = (tui_widget **) malloc(sizeof(tui_widget *) * scr_size.y);
   }
+  global_rect = tui_rect(
+    tui_point(0, 0), 
+    tui_point(scr_size.x - 1, scr_size.y - 1)
+  );
   return ;
 }
 
@@ -78,10 +89,8 @@ void
 tui_paste_widget(
   tui_widget *widget
 ) {
-  for (int i = widget->area.start.x; i <= widget->area.end.x; i++) {
-    for (int j = widget->area.start.y; j <= widget->area.end.y; j++) {
-      full_map[i][j] = widget;
-    }
+  for (auto point : widget->area) {
+    full_map_at(point) = widget;
   }
   widget->set_updated();
 }
@@ -91,27 +100,23 @@ void
 tui_clear_widget(
   tui_widget *widget
 ) {
-  for (int i = widget->area.start.x; i <= widget->area.end.x; i++) {
-    for (int j = widget->area.start.y; j <= widget->area.end.y; j++) {
-      full_map[i][j] = NULL;
-      auto point = (tui_point) {i, j};
-      for (auto it = wl_head; it; it = it->next) {
-        if (it->body == widget) continue;
-        if (point.is_in(it->body->area)) {
-          full_map[i][j] = it->body;
-          it->body->set_updated();
-          break;
-        }
+  for (auto point : widget->area) {
+    for (auto it = wl_head; it; it = it->next) {
+      if (it->body == widget) continue;
+      if (point.is_in(it->body->area)) {
+        full_map_at(point) = it->body;
+        it->body->set_updated();
+        break;
       }
     }
   }
-  
 }
 
 void
 tui_reg_widget(
   tui_widget *widget
 ) {
+  widget->instaniated = true;
   tui_paste_widget(widget);
   tui_append_widget(widget);
   focus = widget;
@@ -150,20 +155,21 @@ tui_draw() {
   Debug("Trigger drawing!");
   ansi_cursor_set(1, 1);
   fflush(stdout);
-  for (int i = 0; i < scr_size.x; i++) {
-    for (int j = 0; j < scr_size.y; j++) {
-      if (!full_map[i][j]) {
-        putchar(' ');
-        continue;
-      }
-      if (full_map[i][j]->get_updated()) {
-        full_map[i][j]->draw(
-          full_map[i][j]->position_interpreter((tui_point) {i, j})
-        );
-      }
-      else ansi_cursor_fw(1);
+  for (auto point : global_rect) {
+    // Debug("%p %p", point.rect, &global_rect);
+    Debug("(%d, %d) ", point.x, point.y);
+    if (!full_map_at(point)) {
+      putchar(' ');
+      continue;
     }
-    putchar('\n');
+    if (full_map_at(point)->get_updated()) {
+      full_map_at(point)->draw(
+        full_map_at(point)->position_interpreter(point)
+      );
+    }
+    else ansi_cursor_fw(1);
+    if (point.y == global_rect.tail.y)
+      putchar('\n');
   }
   fflush(stdout);
   for (auto it = wl_head; it; it = it->next)
