@@ -4,6 +4,8 @@
 #include <basics.h>
 #include <geometry.h>
 
+#include "keycode.h"
+
 // SGR mouse event codes
 enum tui_mouse_event_type {
   MOUSE_LEFT_CLICK=0,

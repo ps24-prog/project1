@@ -3,9 +3,9 @@
 
 static 
 void 
-tui_timer_interupter() {
+tui_timer_interrupter() {
   while (true) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
     tui_event *event = new tui_event(
       TUI_TIMER_INTERUPTER_EVENT,
       NULL
@@ -16,7 +16,7 @@ tui_timer_interupter() {
 
 static 
 void 
-tui_keyboard_interupter() {
+tui_keyboard_interrupter() {
   while (true) {
     auto event = tui_get_event();
     if (event) {
@@ -30,8 +30,8 @@ tui_keyboard_interupter() {
 
 void 
 tui_threads_init() {
-  std::thread t_timer(tui_timer_interupter);
-  std::thread t_keyboard(tui_keyboard_interupter);
+  std::thread t_timer(tui_timer_interrupter);
+  std::thread t_keyboard(tui_keyboard_interrupter);
   t_timer.detach();
   t_keyboard.detach();
 }

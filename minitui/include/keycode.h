@@ -2,6 +2,10 @@
 #define KEYCODE_H__
 
 enum tui_keycode {
+  KEY_ARROW_UP = 0,
+  KEY_ARROW_DOWN = 1,
+  KEY_ARROW_RIGHT = 2,
+  KEY_ARROW_LEFT = 3,
   KEY_SPACE = 32,             // space
   KEY_EXCLAMATION = 33,       // !
   KEY_DOUBLE_QUOTE = 34,      // "
@@ -96,7 +100,8 @@ enum tui_keycode {
   KEY_LEFT_BRACE = 123,       // {
   KEY_VERTICAL_BAR = 124,     // |
   KEY_RIGHT_BRACE = 125,      // }
-  KEY_TILDE = 126             // ~
+  KEY_TILDE = 126,            // ~
+  KEY_BACKSPACE = 127         // delete
 };
 
 #endif

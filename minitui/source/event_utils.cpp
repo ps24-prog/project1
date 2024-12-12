@@ -34,7 +34,7 @@ tui_event::log_event(
     break;
   }
   case TUI_TIMER_INTERUPTER_EVENT: {
-    trace ? Trace("timer interupter event") : Debug("timer interupter event");
+    trace ? Trace("timer interrupter event") : Debug("timer interrupter event");
     break;
   }
   default: {

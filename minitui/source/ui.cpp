@@ -75,7 +75,7 @@ tui_ui_init() {
   // get full_map
   full_map = (tui_widget ***) malloc(sizeof(tui_widget **) * scr_size.x);
   for (int i = 0; i < scr_size.x; i++) {
-    full_map[i] = (tui_widget **) malloc(sizeof(tui_widget *) * scr_size.y);
+    full_map[i] = (tui_widget **) calloc(scr_size.y, sizeof(tui_widget *));
   }
   global_rect = tui_rect(
     tui_point(0, 0), 
@@ -126,6 +126,9 @@ void
 tui_erase_widget(
   tui_widget *widget
 ) {
+  if (!widget->instaniated) {
+    Warn("Deleting non-instaniated widget");
+  }
   if (focus == widget) {
     focus = widget->parent;
     if (!focus) {
@@ -204,6 +207,8 @@ tui_focus_on(
       // root widget can only be focused upon its children's exit
       if (it->body->parent)
         tui_reset_widget(it->body, it->body->area);
+      else 
+        focus = it->body;
       break;
     }
   }

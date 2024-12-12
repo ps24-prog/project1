@@ -82,8 +82,19 @@ tui_rect::width() const {
   return tail.y - head.y + 1;
 }
 
+bool
+tui_rect::isvalid() const {
+  return head.is_in(global_rect) && tail.is_in(global_rect);
+}
+
 tui_point&
 tui_point::operator ++ () {
+  if (!rect) {
+    Error("No rect");
+  }
+  if (!is_valid()) {
+    Error("Point not valid");
+  }
   if (y == rect->tail.y) {
     y = rect->head.y;
     if (x == rect->tail.x) {

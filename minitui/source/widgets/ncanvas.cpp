@@ -1,6 +1,4 @@
 #include <minitui.h>
-#include <debug.h>
-#include <basics.h>
 
 tui_ncanvas::tui_ncanvas(
   tui_rect area,
@@ -29,7 +27,7 @@ tui_ncanvas::draw(
   auto formatter = tui_formatter(fr, fg, fb, br, bg, bb);
 
   formatter.set();
-  printf("\u2580");
+  printf(half_block);
   
   ANSI_CMD(ANSI_RST);
 }

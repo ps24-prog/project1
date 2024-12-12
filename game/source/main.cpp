@@ -2,6 +2,8 @@
 #include <debug.h>
 #include <minitui.h>
 #include <mainscr.h>
+#include <textbox.h>
+#include <border_proxy.h> 
 
 tui_widget *reg_mainscr(tui_point head, tui_point tail, const char *msg) {
   auto mainscr_0 = new mainscr(tui_rect(head, tail));
@@ -19,6 +21,7 @@ tui_widget *reg_mainscr(tui_point head, tui_point tail, const char *msg) {
 }
 
 int main(int argc, char *argv[]) {
+  
   tui_init(argc, argv);
   ansi_title("NJU Universalis");
 
@@ -28,10 +31,21 @@ int main(int argc, char *argv[]) {
     "Hello, Nanjing University!"
   );
 
-  tui_ncanvas *ncanvas_0 = new tui_ncanvas(
+  mainscr_0->create_widget(new tui_ncanvas(
     tui_rect(tui_point(scr_size.x - 5, scr_size.y / 2), global_rect.tail)
+  ));
+
+  mainscr_0->create_widget(
+    border_proxy::create<textbox>(
+      tui_rect(
+        global_rect.head,
+        global_rect.head + tui_point(6, 40)
+      ),
+      "storage/meowmeow.txt",
+      tui_formatter()
+    )
   );
-  mainscr_0->create_widget(ncanvas_0);
+
 
   int ret_value = tui_exec();
   if (ret_value != 0)

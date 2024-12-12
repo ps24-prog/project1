@@ -85,12 +85,12 @@ static int cmd_game(char** argv, int argc) {
   fscanf(pwd_f, "%s", pwd);
 
   if (debug_server) {
-    sprintf(cmd, "wt --size %d,%d --pos 100,100 gdbserver :8117 %s/build/nju_universalis -l %s", SCR_WIDTH, SCR_HEIGHT + 1, pwd, log_level);
+    snprintf(cmd, 1024, "wt --size %d,%d --pos 100,100 cmd /C \"chcp 65001 && cd %s && gdbserver :8117 %s/build/nju_universalis -l %s\"", SCR_WIDTH, SCR_HEIGHT + 1, pwd, pwd, log_level);
     printf("%s\n", cmd);
     system(cmd);
   }
   else {
-    sprintf(cmd, "wt --size %d,%d --pos 100,100 %s/build/nju_universalis -l %s", SCR_WIDTH, SCR_HEIGHT + 1, pwd, log_level);
+    snprintf(cmd, 1024, "wt --size %d,%d --pos 100,100 cmd /C \"chcp 65001 && cd %s && %s/build/nju_universalis -l %s\"", SCR_WIDTH, SCR_HEIGHT + 1, pwd, pwd, log_level);
     printf("%s\n", cmd);
     system(cmd);
   }

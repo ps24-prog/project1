@@ -23,10 +23,21 @@ struct tui_canvas : public tui_widget {
   };
 
   tui_canvas_line operator [] (int x) const;
-  tui_canvas(tui_rect area, tui_widget *parent=NULL);
+  tui_canvas_unit operator [] (tui_point point) const;
+
+  void update_content(tui_point point, char content, tui_formatter formatter);
+
+  tui_point print_content(tui_point point, bool linelimit, tui_formatter formatter, const char *content);
+
+  template <typename... Args>
+  tui_point print_content(tui_point point, bool linelimit, tui_formatter formatter, const char *content, Args... args) {
+    tui_point res = print_content(point, linelimit, formatter, content);
+    return print_content(res, linelimit, args...);
+  }
+
+  tui_canvas(tui_rect area, tui_formatter default_formatter=tui_formatter());
   virtual ~tui_canvas();
   
-  virtual tui_event *on_event(tui_event *event) = 0;
   virtual void draw(tui_point point) const;
 };
 

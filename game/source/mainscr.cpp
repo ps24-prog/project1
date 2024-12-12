@@ -2,9 +2,8 @@
 #include <mainscr.h>
 
 mainscr::mainscr(
-  tui_rect area,
-  tui_widget *parent
-) : tui_canvas(area, parent) {
+  tui_rect area
+) : tui_canvas(area) {
 }
 
 tui_event *
@@ -24,10 +23,16 @@ mainscr::on_event(
         new tui_exit_event(0)
       );
     }
-    if (kbd_event->check_key('p')) {
+    else if (kbd_event->check_key('p')) {
       create_widget(new tui_ncanvas(
-        (tui_rect) {(tui_point) {SCR_HEIGHT - 5, SCR_WIDTH / 2}, (tui_point) {SCR_HEIGHT - 1, SCR_WIDTH - 1}}
+        tui_rect(tui_point(SCR_HEIGHT - 5, SCR_WIDTH / 2), area.tail)
       ));
+      delete event;
+      return NULL;
+    }
+    else if (kbd_event->check_key('r')) {
+      time_counter = 0;
+      // this->set_time_counter(tui_formatter());
       delete event;
       return NULL;
     }
@@ -60,10 +65,24 @@ mainscr::set_central_message(
   }
   int x = area.height() / 2;
   int y = (area.width() - length) / 2;
-  for (int i = 0; i < length; i++) {
-    auto unit = (*this)[x][y+i];
-    (*unit.content) = message[i];
-    (*unit.formatter) = formatter;
-  }
-  set_updated();
+  print_content(tui_point(x, y), true, formatter, message);
+  set_time_counter(formatter);
+  tui_timer::append(new tui_timer(
+    this,
+    1000,
+    [formatter](tui_widget *widget) {
+      mainscr *self = (mainscr *) widget;
+      self->time_counter++;
+      self->set_time_counter(formatter);
+    },
+    true
+  ));
+}
+
+void
+mainscr::set_time_counter(tui_formatter formatter) {
+  int x = area.height() / 2;
+  int y = (area.width() - 4) / 2;
+  print_content(tui_point(x + 1, y), true, formatter, tui_fmt("%02d:%02d", time_counter / 60, time_counter % 60)());
+  return ;
 }

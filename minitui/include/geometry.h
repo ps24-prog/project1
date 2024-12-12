@@ -44,9 +44,13 @@ struct tui_rect {
     head.rect = this;
     tail.rect = this;
   }
+  tui_rect local_rect() const {
+    return tui_rect(tui_point(0, 0), tail - head);
+  }
   bool operator == (const tui_rect &b) const;
   int height() const;
   int width() const;
+  bool isvalid() const;
   struct Iterator {
     tui_point current;
     Iterator(tui_point current) : current(current) {}
@@ -71,9 +75,5 @@ struct tui_rect {
     Debug("Rect: (%d, %d) -> (%d, %d)", head.x, head.y, tail.x, tail.y);
   }
 };
-
-
-
-
 
 #endif

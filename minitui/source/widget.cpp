@@ -40,6 +40,8 @@ void
 tui_widget::add_widget (
   tui_widget *widget
 ) {
+  // a not instaniated widget cannot have children
+  tui_assert(instaniated);
   widget->parent = this;
   children.push_back(widget);
 }
@@ -80,7 +82,7 @@ void
 tui_widget::draw (
   tui_point point
 ) const {
-  ANSI_CMD(ANSI_RST);
+  tui_formatter().set();
   putchar(' ');
   ANSI_CMD(ANSI_RST);
 }
@@ -114,23 +116,25 @@ tui_widget::delete_widget (
   Debug("%s deleting Widget %p with livecnt %d", hard_delete ? "hard" : "soft", widget, widget->livecnt);
   if (hard_delete && !widget->deleted) {
     widget->deleted = true;
-    tui_erase_widget(widget);
-    if (!widget->parent) {
-      tui_assert(root == widget);
-      tui_assert(widget->children.empty());
-      Debug("Root widget deleted");
-    } else {
-      // children become orphans
-      // make them root's children
-      for (auto child : widget->children) {
-        root->add_widget(child);
+    if (widget->instaniated) {
+      tui_erase_widget(widget);
+      if (!widget->parent) {
+        tui_assert(root == widget);
+        tui_assert(widget->children.empty());
+        Debug("Root widget deleted");
+      } else {
+        // children become orphans
+        // make them root's children
+        for (auto child : widget->children) {
+          root->add_widget(child);
+        }
+        // will be called by event loop
+        // widget->parent->on_child_exit(widget);
+        // remove from parent's children list
+        widget->parent->remove_widget(widget);
+        widget->parent = NULL;
+        widget->children.clear();
       }
-      // will be called by event loop
-      // widget->parent->on_child_exit(widget);
-      // remove from parent's children list
-      widget->parent->remove_widget(widget);
-      widget->parent = NULL;
-      widget->children.clear();
     }
   }
   
