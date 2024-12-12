@@ -81,16 +81,16 @@ static int cmd_game(char** argv, int argc) {
   }
 
   char cmd[1024], pwd[1024];
-  FILE *pwd_f = _popen("cygpath -aw .", "r");
+  FILE *pwd_f = _popen("cygpath -am .", "r");
   fscanf(pwd_f, "%s", pwd);
 
   if (debug_server) {
-    sprintf(cmd, "wt --size %d,%d --pos 100,100 gdbserver :8117 %s\\build\\nju_universalis -l %s", SCR_WIDTH, SCR_HEIGHT + 1, pwd, log_level);
+    sprintf(cmd, "wt --size %d,%d --pos 100,100 gdbserver :8117 %s/build/nju_universalis -l %s", SCR_WIDTH, SCR_HEIGHT + 1, pwd, log_level);
     printf("%s\n", cmd);
     system(cmd);
   }
   else {
-    sprintf(cmd, "wt --size %d,%d --pos 100,100 %s\\build\\nju_universalis -l %s", SCR_WIDTH, SCR_HEIGHT + 1, pwd, log_level);
+    sprintf(cmd, "wt --size %d,%d --pos 100,100 %s/build/nju_universalis -l %s", SCR_WIDTH, SCR_HEIGHT + 1, pwd, log_level);
     printf("%s\n", cmd);
     system(cmd);
   }

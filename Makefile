@@ -58,7 +58,7 @@ $(BUILD_DIR)/%.o : %.cpp
 	@mkdir -p $(dir $@) && echo + $(CXX) $<
 # convert windows paths to unix paths in dependency files
 ifeq ($(shell echo $$OS), Windows_NT)
-	@$(CXX) -c -o $@ $(CXXFLAGS) $(shell cygpath -w $<)
+	@$(CXX) -c -o $@ $(CXXFLAGS) $(shell cygpath -m $<)
 	@sed -i 's/[A-Z]:\//\/\l&/g' $(patsubst %.o, %.d, $@)
 	@sed -i 's/:\//\//g' $(patsubst %.o, %.d, $@)
 else
@@ -69,7 +69,7 @@ $(BUILD_DIR)/%.o : %.c
 	@mkdir -p $(dir $@) && echo + $(CC) $<
 # convert windows paths to unix paths in dependency files
 ifeq ($(shell echo $$OS), Windows_NT)
-	@$(CC) -c -o $@ $(CFLAGS) $(shell cygpath -w $<)
+	@$(CC) -c -o $@ $(CFLAGS) $(shell cygpath -m $<)
 	@sed -i 's/[A-Z]:\//\/\l&/g' $(patsubst %.o, %.d, $@)
 	@sed -i 's/:\//\//g' $(patsubst %.o, %.d, $@)
 else

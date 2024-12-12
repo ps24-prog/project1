@@ -148,16 +148,16 @@ tui_draw() {
 
   // no need to draw
   if (!it) {
-    Debug("Skip drawing!");
+    // Trace("Skip drawing!");
     return ;
   }
 
-  Debug("Trigger drawing!");
+  // Trace("Trigger drawing!");
   ansi_cursor_set(1, 1);
   fflush(stdout);
   for (auto point : global_rect) {
-    // Debug("%p %p", point.rect, &global_rect);
-    Debug("(%d, %d) ", point.x, point.y);
+    // Trace("%p %p", point.rect, &global_rect);
+    // Trace("(%d, %d) ", point.x, point.y);
     if (!full_map_at(point)) {
       putchar(' ');
       continue;

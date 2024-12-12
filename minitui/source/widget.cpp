@@ -97,7 +97,7 @@ tui_widget::on_child_exit (
   if (this != root) {
     return NULL;
   }
-  if (children.size() == 1) {
+  if (children.size() == 1 && child->children.empty()) {
     return new tui_event(
       TUI_EXIT_EVENT,
       new tui_exit_event(child->retcode)
