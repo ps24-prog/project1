@@ -39,6 +39,14 @@ void tui_process_args(int argc, char **argv) {
 }
 
 void tui_terminal_init() {
+
+#ifdef _WIN64
+  // set stdin to utf-8
+  SetConsoleCP(CP_UTF8); 
+  // set stdout to utf-8
+  SetConsoleOutputCP(CP_UTF8);
+#endif
+
   static char buf[32768];
   setvbuf(stdin, NULL, _IONBF, 0);
   setvbuf(stdout, buf, _IOFBF, 32768);
