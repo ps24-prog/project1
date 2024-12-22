@@ -34,7 +34,7 @@ tui_event::log_event(
     break;
   }
   case TUI_TIMER_INTERUPTER_EVENT: {
-    trace ? Trace("timer interupter event") : Debug("timer interupter event");
+    trace ? Trace("timer interrupter event") : Debug("timer interrupter event");
     break;
   }
   default: {
@@ -43,4 +43,47 @@ tui_event::log_event(
   }
   }
   return ;
+}
+
+bool
+tui_kbd_event::check_key(
+  char key,
+  bool strict
+) {
+  if (!strict) {
+    if (key >= 'A' && key <= 'Z') key += 'a' - 'A';
+    if (code >= 'A' && code <= 'Z') code += 'a' - 'A';
+  }
+  return code == key;
+}
+
+bool
+tui_event::check_key(
+  char key,
+  bool strict
+) {
+  auto event = this;
+  if (event->event_type != TUI_KEYBD_EVENT) {
+    return false;
+  }
+  else {
+    auto kbd_event = (tui_kbd_event *) event->event_body;
+    return kbd_event->check_key(key, strict);
+  }
+}
+
+tui_event *
+tui_event::exit_on_key(
+  tui_event *event,
+  char key, 
+  int retcode
+) {
+  if (event->check_key(key)) {
+    delete event;
+    return new tui_event(
+      TUI_EXIT_EVENT,
+      new tui_exit_event(retcode)
+    );
+  }
+  return NULL; 
 }

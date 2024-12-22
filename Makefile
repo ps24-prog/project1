@@ -109,9 +109,9 @@ compile: $(BUILD_DIR)/nju_universalis
 # run: compile
 # 	@$(BUILD_DIR)/nju_universalis 2>$(BUILD_DIR)/game.log
 
--include $(addprefix $(BUILD_DIR)/, $(addsuffix .d, $(basename $(SRCS))))
+-include $(addprefix $(BUILD_DIR)/, $(C_SRCS:%.c=%.d) $(CXX_SRCS:%.cpp=%.d))
 
 clean:
 	-@rm -rf build
 
-.PHONY: clean compile run test shell
+.PHONY: clean compile run test shell test_shell test_compile

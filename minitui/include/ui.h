@@ -19,5 +19,7 @@ void tui_draw();
 void tui_reg_widget(tui_widget *widget);
 void tui_erase_widget(tui_widget *widget);
 void tui_reset_widget(tui_widget *widget, tui_rect area);
+void tui_adjust_widget(tui_widget *widget, tui_rect area, bool proxy_penetrate=true);
+void tui_update_widget(tui_widget *old_widget, tui_widget *new_widget);
 
 #endif

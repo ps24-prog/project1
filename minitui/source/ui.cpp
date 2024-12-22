@@ -62,6 +62,16 @@ tui_delete_widget (
   }
 }
 
+static
+tui_widget_list *
+tui_find_widget (
+  tui_widget *widget
+) {
+  auto it = wl_head;
+  for (; it && it->body != widget; it = it->next) ;
+  return it;
+}
+
 tui_widget ***full_map;
 
 static
@@ -75,7 +85,7 @@ tui_ui_init() {
   // get full_map
   full_map = (tui_widget ***) malloc(sizeof(tui_widget **) * scr_size.x);
   for (int i = 0; i < scr_size.x; i++) {
-    full_map[i] = (tui_widget **) malloc(sizeof(tui_widget *) * scr_size.y);
+    full_map[i] = (tui_widget **) calloc(scr_size.y, sizeof(tui_widget *));
   }
   global_rect = tui_rect(
     tui_point(0, 0), 
@@ -86,23 +96,13 @@ tui_ui_init() {
 
 static
 void
-tui_paste_widget(
-  tui_widget *widget
-) {
-  for (auto point : widget->area) {
-    full_map_at(point) = widget;
-  }
-  widget->set_updated();
-}
-
-static
-void
-tui_clear_widget(
-  tui_widget *widget
+tui_update_full_map(
+  tui_widget *widget,
+  bool clear = false
 ) {
   for (auto point : widget->area) {
     for (auto it = wl_head; it; it = it->next) {
-      if (it->body == widget) continue;
+      if (clear && it->body == widget) continue;
       if (point.is_in(it->body->area)) {
         full_map_at(point) = it->body;
         it->body->set_updated();
@@ -116,9 +116,12 @@ void
 tui_reg_widget(
   tui_widget *widget
 ) {
+  if (widget->instaniated) {
+    Warn("Repeat instaniating widget");
+  }
   widget->instaniated = true;
-  tui_paste_widget(widget);
   tui_append_widget(widget);
+  tui_update_full_map(widget);
   focus = widget;
 }
 
@@ -126,6 +129,10 @@ void
 tui_erase_widget(
   tui_widget *widget
 ) {
+  if (!widget->instaniated) {
+    Warn("Deleting non-instaniated widget");
+  }
+  widget->instaniated = false;
   if (focus == widget) {
     focus = widget->parent;
     if (!focus) {
@@ -133,9 +140,24 @@ tui_erase_widget(
     }
   }
   tui_delete_widget(widget);
-  tui_clear_widget(widget);
+  tui_update_full_map(widget);
   return ;
 }
+
+void
+tui_update_widget(
+  tui_widget *old_widget,
+  tui_widget *new_widget
+) {
+  new_widget->instaniated = true;
+  old_widget->instaniated = false;
+  Debug("Updating widget %p %s to %p %s", old_widget, old_widget->name, new_widget, new_widget->name);
+  auto wl = tui_find_widget(old_widget);
+  wl->body = new_widget;
+  tui_update_full_map(old_widget);
+  tui_update_full_map(new_widget);
+}
+  
 
 void
 tui_draw() {
@@ -163,9 +185,11 @@ tui_draw() {
       continue;
     }
     if (full_map_at(point)->get_updated()) {
+      tui_formatter().set();
       full_map_at(point)->draw(
         full_map_at(point)->position_interpreter(point)
       );
+      ANSI_CMD(ANSI_RST);
     }
     else ansi_cursor_fw(1);
     if (point.y == global_rect.tail.y)
@@ -181,8 +205,13 @@ tui_reset_widget(
   tui_widget *widget,
   tui_rect area
 ) {
+  tui_assert(widget->instaniated);
+  if (widget->proxy_penetrator()->reset_block) {
+    Warn("trigger reset block");
+    return ;
+  }
   tui_erase_widget(widget);
-  widget->area = area;
+  widget->reset_area(area);
   tui_reg_widget(widget);
   return ;
 }
@@ -197,13 +226,12 @@ tui_focus_on(
     if (point.is_in(it->body->area)) {
       // change focus if it is a click
       if (focus != it->body) {
-        Debug("Change focus to %p", it->body);
+        Debug("Change focus to %p %s", it->body, it->body->name);
       } else {
-        Debug("Focus remains %p", it->body);
+        Debug("Focus remains %p %s", it->body, it->body->name);
       }
-      // root widget can only be focused upon its children's exit
-      if (it->body->parent)
-        tui_reset_widget(it->body, it->body->area);
+
+      tui_reset_widget(it->body, it->body->area);
       break;
     }
   }
@@ -212,10 +240,17 @@ tui_focus_on(
 void
 tui_adjust_widget(
   tui_widget *widget,
-  tui_rect area
+  tui_rect area,
+  bool proxy_penetrate
 ) {
-  tui_clear_widget(focus);
-  widget->area = area;
-  tui_paste_widget(widget);
+  Debug("Adjusting widget %p %s", widget, widget->name);
+  tui_assert(widget->instaniated);
+  tui_update_full_map(widget, true);
+  if (proxy_penetrate) {
+    widget->reset_area(area);
+  } else {
+    widget->area = area;
+  }
+  tui_update_full_map(widget);
   return ;
 }

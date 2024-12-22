@@ -28,14 +28,14 @@ std::vector<tui_timer *>::iterator
 tui_timer::release(std::vector<tui_timer *>::iterator it) {
   tui_timer *timer = *it;
   if (!timer->widget->deleted && !timer->check()) {
-    return it++;
+    return ++it;
   }
   if (!timer->widget->deleted) {
     timer->execute();
   }
   if (timer->periodic && !timer->widget->deleted) {
     timer->start = std::chrono::steady_clock::now();
-    return it++;
+    return ++it;
   } else {
     delete timer;
     return timers.erase(it);

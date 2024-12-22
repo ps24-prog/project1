@@ -14,5 +14,5 @@
 
 ## 使用方法
 
-+ 编译代码 `make compile`。
-+ 运行游戏 `make shell`。
++ 编译代码 `make -j8 compile`。
++ 运行游戏 `make -j8 shell`。

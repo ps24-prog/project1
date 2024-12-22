@@ -4,6 +4,10 @@
 #include <basics.h>
 #include <geometry.h>
 
+#include "keycode.h"
+
+struct event;
+
 // SGR mouse event codes
 enum tui_mouse_event_type {
   MOUSE_LEFT_CLICK=0,
@@ -22,8 +26,6 @@ enum tui_event_type {
   TUI_PASTE_EVENT
 };
 
-
-
 struct tui_mouse_event {
   int type;
   int x, y;
@@ -35,7 +37,7 @@ struct tui_mouse_event {
     , ispress(ispress) 
   {}
   tui_point get_point() const {
-    return (tui_point) {x, y};
+    return tui_point(x, y);
   }
   static void log_mouse_event(const tui_mouse_event *mouse_event, bool trace=false);
 };
@@ -57,13 +59,7 @@ struct tui_kbd_event {
   // tui_kbd_code_type code_type;
   char code;
   tui_kbd_event(char code) : code(code) {}
-  bool check_key(char key, bool strict=true) {
-    if (!strict) {
-      if (key >= 'A' && key <= 'Z') key += 'a' - 'A';
-      if (code >= 'A' && code <= 'Z') code += 'a' - 'A';
-    }
-    return code == key;
-  }
+  bool check_key(char key, bool strict=true);
 };
 
 struct tui_exit_event {
@@ -74,7 +70,12 @@ struct tui_exit_event {
 struct tui_event {
   int event_type;
   void *event_body;
+
+  bool check_key(char key, bool strict=true);
+  
   static void log_event(const tui_event *event, bool trace=false);
+  static tui_event *exit_on_key(tui_event *event, char key, int retcode=0);
+
   tui_event(int event_type, void *event_body) 
     : event_type(event_type)
     , event_body(event_body)

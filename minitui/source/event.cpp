@@ -50,7 +50,7 @@ tui_get_ansi_event() {
 
       auto event = new tui_event(
         TUI_KEYBD_EVENT, 
-        new tui_kbd_event(ch)
+        new tui_kbd_event(ch - 'A')
       );
       
       return event;
@@ -67,8 +67,8 @@ tui_get_ansi_event() {
 
       auto event = new tui_event(TUI_MOUSE_EVENT, new tui_mouse_event(
         arg_type.first, 
-        arg_x.first, 
-        arg_y.first, 
+        arg_x.first - 1, 
+        arg_y.first - 1, 
         arg_x.second == 'M'
       ));
       tui_mouse_event::log_mouse_event((tui_mouse_event *) event->event_body);
@@ -122,7 +122,7 @@ tui_get_event() {
   }
 
   default: {
-    Debug("Get a key!");
+    Debug("Get a key %d!", ch);
     return new tui_event(
       TUI_KEYBD_EVENT, 
       new tui_kbd_event(ch)
@@ -181,9 +181,11 @@ tui_exec() {
     if (!event) {
       Error("Event is NULL");
     }
+    // tui_event::log_event(event, false);
     
     switch (event->event_type) {
       case TUI_EXIT_EVENT: {
+        Debug("Get a exit event");
         final_retcode = \
         ((tui_exit_event *) event->event_body)->retcode;
         delete event;
@@ -236,7 +238,7 @@ tui_exec() {
           current = next;
           next = next->parent;
         } else {
-          assert(current == root);
+          tui_assert(current == root);
           final_retcode = \
           ((tui_exit_event *) event->event_body)->retcode;
           tui_widget::delete_widget(current, true);

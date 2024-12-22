@@ -8,7 +8,7 @@ tui_msgbox::tui_msgbox(
   tui_rect area,
   tui_widget *parent,
   char *message
-) : tui_widget(area, parent)
+) : tui_widget(area, NULL, parent)
   , message(message)
   , msg_length(strlen(message)) {
 }

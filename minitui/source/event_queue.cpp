@@ -24,7 +24,7 @@ tui_event_queue::pop_event() {
   tui_event *event = queue.front();
   queue.pop();
   Trace("pop event %p", event);
-  tui_event::log_event(event, true);
+  // tui_event::log_event(event, true);
   return event;
 }
 

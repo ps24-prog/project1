@@ -1,22 +1,25 @@
 #include <minitui.h>
-#include <debug.h>
-#include <basics.h>
 
 tui_ncanvas::tui_ncanvas(
   tui_rect area,
   tui_widget *parent
-) : tui_widget(area, parent), boff(0) { 
+) : tui_widget(area, NULL, parent), boff(0) { 
+  strcpy(name, "NCANVAS");
+  tui_timer::append(new tui_timer(this, 1000, [](tui_widget *widget) -> void {
+    tui_ncanvas *ncanvas = (tui_ncanvas *) widget;
+    ncanvas->boff += 16;
+    ncanvas->set_updated();
+  }, true));
 }
 
 tui_ncanvas::~tui_ncanvas() {
+  
 }
 
 void
 tui_ncanvas::draw(
   tui_point point
 ) const {
-  ANSI_CMD(ANSI_RST);
-
   uint8_t fr, fg, fb, br, bg, bb;
   // 渐变色，从左上到右下的图谱
   fr = point.x * 2 * 255 / (area.height() * 2) + boff;
@@ -29,9 +32,7 @@ tui_ncanvas::draw(
   auto formatter = tui_formatter(fr, fg, fb, br, bg, bb);
 
   formatter.set();
-  printf("\u2580");
-  
-  ANSI_CMD(ANSI_RST);
+  printf(half_block);
 }
 
 tui_event *
@@ -42,22 +43,12 @@ tui_ncanvas::on_event(
   if (!event || !event->event_body) {
     Error("Invalid event given!");
   }
-  if (event->event_type == TUI_KEYBD_EVENT) {
-    auto kbd_event = (tui_kbd_event *) event->event_body;
-    if (kbd_event->code == 'q' || kbd_event->code == 'Q') {
-      FREE_EVENT_BODY(event);
-      auto exit_event = CREATE_OBJ(tui_exit_event);
-      exit_event->retcode = 0;
-      
-      event->event_type = TUI_EXIT_EVENT;
-      event->event_body = exit_event;
-      return event;
-    } else if (kbd_event->code == 'i' || kbd_event->code == 'I') {
-      boff += 16;
-      set_updated();
-    }
+  if (event->check_key('i')) {
+    boff += 16;
+    set_updated();
   } else if (event->event_type == TUI_MOUSE_EVENT) {
     auto mouse_event = (tui_mouse_event *) event->event_body;
+    // this->area.log_rect();
     if (!mouse_event->get_point().is_in(this->area))
       return event;
     

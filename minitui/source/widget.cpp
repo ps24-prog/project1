@@ -2,14 +2,25 @@
 
 tui_widget::tui_widget(
   tui_rect area,
-  tui_widget *parent
-) : area(area)
-  , updated(false)
-  , instaniated(false)
-  , parent(parent) 
-  , retcode(0)
-  , livecnt(1)
-  , deleted(false) {
+  const char *name,     // not recommend to use
+  tui_widget *parent    // not recommend to use
+) 
+: area(area)
+, updated(false)
+, instaniated(false)
+, reset_block(false)
+, parent(parent) 
+, unproxy(NULL)
+, frame(NULL)
+, retcode(0)
+, livecnt(1)
+, deleted(false) {
+  if (!name) {
+    strcpy(this->name, "DEFAULT_WIDGET");
+  }
+  else {
+    strcpy(this->name, name);
+  }
   children.clear(); 
 }
 
@@ -36,20 +47,30 @@ tui_widget::position_mapper (
   return res_point;
 }
 
-void 
+tui_widget *
 tui_widget::add_widget (
   tui_widget *widget
 ) {
+  // a not instaniated widget cannot have children
+  tui_assert(instaniated);
   widget->parent = this;
   children.push_back(widget);
+  return widget;
 }
 
-void 
+tui_widget *
 tui_widget::create_widget (
   tui_widget *widget
 ) {
-  add_widget(widget);
   tui_reg_widget(widget);
+  return add_widget(widget);
+}
+
+tui_widget *
+tui_widget::set_attrs (
+  std::vector<tui_fmt> attrs
+) {
+  return tui_proxy_factory::add(this, attrs);
 }
 
 void
@@ -80,24 +101,23 @@ void
 tui_widget::draw (
   tui_point point
 ) const {
-  ANSI_CMD(ANSI_RST);
   putchar(' ');
-  ANSI_CMD(ANSI_RST);
 }
 
 tui_widget::~tui_widget() {
-  Debug("Widget %p deleted", this);
+  Debug("Widget %p %s deleted", this, this->name);
 }
 
 tui_event *
 tui_widget::on_child_exit (
   tui_widget *child
 ) {
+  Debug("Child %d %p %s exited", children.size(), child, child->name);
   // if not root, do nothing
-  if (this != root) {
+  if (this->unproxy_penetrator() != root) {
     return NULL;
   }
-  if (children.size() == 1 && child->children.empty()) {
+  if (this->get_children().size() == 1 && child->children.empty()) {
     return new tui_event(
       TUI_EXIT_EVENT,
       new tui_exit_event(child->retcode)
@@ -111,26 +131,28 @@ tui_widget::delete_widget (
   tui_widget *widget,
   bool hard_delete
 ) {
-  Debug("%s deleting Widget %p with livecnt %d", hard_delete ? "hard" : "soft", widget, widget->livecnt);
+  Debug("%s deleting Widget %p %s with livecnt %d", hard_delete ? "hard" : "soft", widget, widget->name, widget->livecnt);
   if (hard_delete && !widget->deleted) {
     widget->deleted = true;
-    tui_erase_widget(widget);
-    if (!widget->parent) {
-      tui_assert(root == widget);
-      tui_assert(widget->children.empty());
-      Debug("Root widget deleted");
-    } else {
-      // children become orphans
-      // make them root's children
-      for (auto child : widget->children) {
-        root->add_widget(child);
+    if (widget->instaniated) {
+      tui_erase_widget(widget);
+      if (!widget->parent) {
+        tui_assert(root == widget);
+        tui_assert(widget->children.empty());
+        Debug("Root widget deleted");
+      } else {
+        // children become orphans
+        // make them root's children
+        for (auto child : widget->children) {
+          root->add_widget(child);
+        }
+        // will be called by event loop
+        // widget->parent->on_child_exit(widget);
+        // remove from parent's children list
+        widget->parent->remove_widget(widget);
+        widget->parent = NULL;
+        widget->children.clear();
       }
-      // will be called by event loop
-      // widget->parent->on_child_exit(widget);
-      // remove from parent's children list
-      widget->parent->remove_widget(widget);
-      widget->parent = NULL;
-      widget->children.clear();
     }
   }
   
@@ -140,9 +162,91 @@ tui_widget::delete_widget (
   }
 }
 
+void
+tui_widget::transform_widget(
+  tui_widget *target
+) {
+  if (this == root) {
+    Debug("Transforming root widget to %s", target->name);
+    root = target;
+  }
+  Debug("Transforming widget %s to %s", this->name, target->name);
+  tui_widget *widget = this;
+  if (widget->instaniated) {
+    tui_update_widget(widget, target);
+  }
+  if (widget->parent) {
+    widget->parent->remove_widget(widget);
+    widget->parent->add_widget(target);
+    target->parent = widget->parent;
+    widget->parent = NULL;
+  }
+  if (widget->frame) {
+    // TODO
+    target->frame = widget->frame;
+    widget->frame = NULL;
+  }
+  if (!widget->children.empty()) {
+    printf("Transforming children of %s\n", widget->name);
+    for (auto child : widget->children) {
+      target->add_widget(child);
+      // do not erase child here, or the iterator will become invalid
+    }
+    widget->children.clear();
+  }
+}
+
+void
+tui_widget::proxize_widget(
+  tui_widget *proxy
+) {
+  this->unproxy = proxy;
+  tui_assert(proxy->proxy() == this);
+  transform_widget(proxy);
+}
+
+// no proxy
+tui_widget *
+tui_widget::proxy() const {
+  return NULL;
+}
+
+tui_widget *
+tui_widget::proxy_penetrator() const {
+  if (this->proxy()) {
+    return this->proxy()->proxy_penetrator();
+  }
+  return (tui_widget *) this;
+}
+
+tui_widget *
+tui_widget::unproxy_penetrator() const {
+  if (this->unproxy) {
+    return this->unproxy->unproxy_penetrator();
+  }
+  return (tui_widget *) this;
+}
+
+void
+tui_widget::reset_area(
+  tui_rect area
+) {
+  if (this->proxy()) {
+    this->proxy()->reset_area(
+      tui_rect(
+        area.head + this->proxy()->area.head - this->area.head,
+        area.tail + this->proxy()->area.tail - this->area.tail
+      )
+    );
+  }
+  this->area = area;
+}
+
 tui_widget *root;
 
 void tui_widget_init() {
   root = new tui_widget(global_rect);
+  strcpy(root->name, "ROOT");
+  root->reset_block = true;
   tui_reg_widget(root);
 }

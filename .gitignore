@@ -14,6 +14,8 @@
 
 # directories
 
+!storage
+
 # code (general)
 !source
 !include
