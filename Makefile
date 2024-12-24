@@ -1,5 +1,12 @@
+SHELL = /bin/bash
+
 # set directories
+ifneq ($(shell $(MAKE) --version | grep -i Windows),)
+WORK_DIR = $(shell cygpath -m `pwd`)
+else
 WORK_DIR = $(shell pwd)
+endif
+
 BUILD_DIR = $(WORK_DIR)/build
 RESOURCE_DIR = $(WORK_DIR)/resources
 
@@ -58,9 +65,11 @@ $(BUILD_DIR)/%.o : %.cpp
 	@mkdir -p $(dir $@) && echo + $(CXX) $<
 # convert windows paths to unix paths in dependency files
 ifeq ($(shell echo $$OS), Windows_NT)
-	@$(CXX) -c -o $@ $(CXXFLAGS) $(shell cygpath -m $<)
+	@$(CXX) -c -o $(shell cygpath -m $@) $(CXXFLAGS) $(shell cygpath -m $<)
+ifeq ($(shell $(MAKE) --version | grep -i Windows),)
 	@sed -i 's/[A-Z]:\//\/\l&/g' $(patsubst %.o, %.d, $@)
 	@sed -i 's/:\//\//g' $(patsubst %.o, %.d, $@)
+endif
 else
 	@$(CXX) -c -o $@ $(CXXFLAGS) $<
 endif
@@ -69,9 +78,11 @@ $(BUILD_DIR)/%.o : %.c
 	@mkdir -p $(dir $@) && echo + $(CC) $<
 # convert windows paths to unix paths in dependency files
 ifeq ($(shell echo $$OS), Windows_NT)
-	@$(CC) -c -o $@ $(CFLAGS) $(shell cygpath -m $<)
+	@$(CC) -c -o $(shell cygpath -m $@) $(CFLAGS) $(shell cygpath -m $<)
+ifeq ($(shell $(MAKE) --version | grep -i Windows),)
 	@sed -i 's/[A-Z]:\//\/\l&/g' $(patsubst %.o, %.d, $@)
 	@sed -i 's/:\//\//g' $(patsubst %.o, %.d, $@)
+endif
 else
 	@$(CC) -c -o $@ $(CFLAGS) $<
 endif

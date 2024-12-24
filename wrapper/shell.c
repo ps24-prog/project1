@@ -59,20 +59,28 @@ static int cmd_debug(char** argv, int argc) {
 
 static int cmd_game(char** argv, int argc) {
 
-#ifdef _WIN64
-
+  int height = SCR_HEIGHT;
+  int width = SCR_WIDTH;
   bool debug_server = 0;
   char log_level[25] = "Debug";
 
+#ifdef _WIN64
+
   optind = 0;
   char ch;
-  while ((ch = getopt(argc, argv, "gl:")) != -1) {
+  while ((ch = getopt(argc, argv, "gl:w:h:")) != -1) {
     switch (ch) {
       case 'g':
         debug_server = 1;
         break;
       case 'l':
         strcpy(log_level, optarg);
+        break;
+      case 'w':
+        width = atoi(optarg);
+        break;
+      case 'h':
+        height = atoi(optarg);
         break;
       case '?':
         printf("Unknown option: %c\n", optopt);
@@ -85,12 +93,12 @@ static int cmd_game(char** argv, int argc) {
   fscanf(pwd_f, "%s", pwd);
 
   if (debug_server) {
-    snprintf(cmd, 1024, "wt --size %d,%d --pos 100,100 cmd /C \"chcp 65001 && cd %s && gdbserver :8117 %s/build/nju_universalis -l %s\"", SCR_WIDTH, SCR_HEIGHT + 1, pwd, pwd, log_level);
+    snprintf(cmd, 1024, "wt --size %d,%d --pos 100,100 cmd /C \"chcp 65001 && %c: && cd %s && gdbserver :8117 %s/build/nju_universalis -l %s -w %d -h %d\"", width, height + 1, pwd[0], pwd, pwd, log_level, width, height);
     printf("%s\n", cmd);
     system(cmd);
   }
   else {
-    snprintf(cmd, 1024, "wt --size %d,%d --pos 100,100 cmd /C \"chcp 65001 && cd %s && %s/build/nju_universalis -l %s\"", SCR_WIDTH, SCR_HEIGHT + 1, pwd, pwd, log_level);
+    snprintf(cmd, 1024, "wt --size %d,%d --pos 100,100 cmd /C \"chcp 65001 && %c: && cd %s && %s/build/nju_universalis -l %s -w %d -h %d\"", width, height + 1, pwd[0], pwd, pwd, log_level, width, height);
     printf("%s\n", cmd);
     system(cmd);
   }
