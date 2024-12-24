@@ -91,7 +91,7 @@ ifeq ($(shell echo $$OS), Windows_NT)
 
 $(BUILD_DIR)/resources/%.o : resources/%.rc
 	@mkdir -p $(dir $@) && echo + windres $<
-	@windres -i $(shell cygpath -w $<) -o $@
+	@windres -i $(shell cygpath -m $<) -o $@
 
 endif
 
