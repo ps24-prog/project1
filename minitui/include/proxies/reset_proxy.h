@@ -2,7 +2,7 @@
 #define RESET_PROXY_H__
 
 #include <minitui.h>
-
+ 
 struct tui_reset_proxy : public tui_widget_proxy {
   factory_reg(tui_reset_proxy, "reset");
 
