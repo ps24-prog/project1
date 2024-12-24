@@ -59,10 +59,10 @@ static int cmd_debug(char** argv, int argc) {
 
 static int cmd_game(char** argv, int argc) {
 
-#ifdef _WIN64
-
   bool debug_server = 0;
   char log_level[25] = "Debug";
+
+#ifdef _WIN64
 
   optind = 0;
   char ch;
@@ -85,12 +85,12 @@ static int cmd_game(char** argv, int argc) {
   fscanf(pwd_f, "%s", pwd);
 
   if (debug_server) {
-    snprintf(cmd, 1024, "wt --size %d,%d --pos 100,100 cmd /C \"chcp 65001 && cd %s && gdbserver :8117 %s/build/nju_universalis -l %s\"", SCR_WIDTH, SCR_HEIGHT + 1, pwd, pwd, log_level);
+    snprintf(cmd, 1024, "wt --size %d,%d --pos 100,100 cmd /C \"chcp 65001 && %c: && cd %s && gdbserver :8117 %s/build/nju_universalis -l %s\"", SCR_WIDTH, SCR_HEIGHT + 1, pwd[0], pwd, pwd, log_level);
     printf("%s\n", cmd);
     system(cmd);
   }
   else {
-    snprintf(cmd, 1024, "wt --size %d,%d --pos 100,100 cmd /C \"chcp 65001 && cd %s && %s/build/nju_universalis -l %s\"", SCR_WIDTH, SCR_HEIGHT + 1, pwd, pwd, log_level);
+    snprintf(cmd, 1024, "wt --size %d,%d --pos 100,100 cmd /C \"chcp 65001 && %c: && cd %s && %s/build/nju_universalis -l %s\"", SCR_WIDTH, SCR_HEIGHT + 1, pwd[0], pwd, pwd, log_level);
     printf("%s\n", cmd);
     system(cmd);
   }
