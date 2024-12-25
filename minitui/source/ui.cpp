@@ -29,6 +29,16 @@ long long draw_counter = 0;
 
 static
 void
+tui_set_focus(
+  tui_widget *widget
+) {
+  // task phase0: update focus's `focused`
+  focus = widget;
+  // task phase0: update widget's `focused`
+}
+
+static
+void
 tui_append_widget (
   tui_widget *widget
 ) {
@@ -70,6 +80,18 @@ tui_find_widget (
   auto it = wl_head;
   for (; it && it->body != widget; it = it->next) ;
   return it;
+}
+
+tui_widget *
+tui_look_widget (
+  tui_point point
+) {
+  for (auto it = wl_head; it; it = it->next) {
+    if (point.is_in(it->body->area)) {
+      return it->body; 
+    }
+  }
+  return NULL;
 }
 
 tui_widget ***full_map;
@@ -122,7 +144,7 @@ tui_reg_widget(
   widget->instaniated = true;
   tui_append_widget(widget);
   tui_update_full_map(widget);
-  focus = widget;
+  tui_set_focus(widget);
 }
 
 void
@@ -134,7 +156,7 @@ tui_erase_widget(
   }
   widget->instaniated = false;
   if (focus == widget) {
-    focus = widget->parent;
+    tui_set_focus(widget->parent);
     if (!focus) {
       Warn("Erasing root widget");
     }
@@ -149,6 +171,8 @@ tui_update_widget(
   tui_widget *old_widget,
   tui_widget *new_widget
 ) {
+  if (old_widget == focus)
+    tui_set_focus(new_widget);
   new_widget->instaniated = true;
   old_widget->instaniated = false;
   Debug("Updating widget %p %s to %p %s", old_widget, old_widget->name, new_widget, new_widget->name);
@@ -208,10 +232,12 @@ tui_reset_widget(
   tui_assert(widget->instaniated);
   if (widget->proxy_penetrator()->reset_block) {
     Warn("trigger reset block");
+    tui_set_focus(widget);
     return ;
   }
   tui_erase_widget(widget);
-  widget->reset_area(area);
+  if (area != widget->area)
+    widget->reset_area(area);
   tui_reg_widget(widget);
   return ;
 }
@@ -220,20 +246,14 @@ void
 tui_focus_on(
   tui_point point
 ) {
-  for (auto it = wl_head; it; it = it->next) {
-    Debug("Focus: checking %p", it->body);
-    it->body->area.log_rect();
-    if (point.is_in(it->body->area)) {
-      // change focus if it is a click
-      if (focus != it->body) {
-        Debug("Change focus to %p %s", it->body, it->body->name);
-      } else {
-        Debug("Focus remains %p %s", it->body, it->body->name);
-      }
-
-      tui_reset_widget(it->body, it->body->area);
-      break;
+  auto widget = tui_look_widget(point);
+  if (widget) {
+    if (focus == widget) {
+      Debug("Change focus to %p %s", widget, widget->name);
+    } else {
+      Debug("Focus remains %p %s", widget, widget->name);
     }
+    tui_reset_widget(widget, widget->area);
   }
 }
 
@@ -246,10 +266,12 @@ tui_adjust_widget(
   Debug("Adjusting widget %p %s", widget, widget->name);
   tui_assert(widget->instaniated);
   tui_update_full_map(widget, true);
-  if (proxy_penetrate) {
-    widget->reset_area(area);
-  } else {
-    widget->area = area;
+  if (area != widget->area) {
+    if (proxy_penetrate) {
+      widget->reset_area(area);
+    } else {
+      widget->area = area;
+    }
   }
   tui_update_full_map(widget);
   return ;

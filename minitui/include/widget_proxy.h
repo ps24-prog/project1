@@ -44,6 +44,7 @@ struct tui_widget_proxy : public tui_widget {
   void draw(tui_point point) const override;
   tui_event *on_event(tui_event *event) override;
   tui_event *on_child_exit(tui_widget *child) override;
+  void update() override;
   tui_widget *proxy() const override;
   ~tui_widget_proxy();
 };

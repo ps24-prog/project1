@@ -13,6 +13,7 @@
 #include "event.h"
 #include "ui.h"
 #include "widget.h"
+#include "widgets/formatter.h"
 #include "widgets/msgbox.h"
 #include "widgets/dummy.h"
 #include "widgets/canvas.h"

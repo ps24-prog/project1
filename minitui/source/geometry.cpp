@@ -33,6 +33,13 @@ tui_point::is_in(
 }
 
 bool 
+tui_point::is_in_local(
+  const tui_rect &rect
+) const {
+  return is_in(rect.local_rect());
+}
+
+bool 
 tui_point::is_valid() const {
   return is_in(*rect);
 }

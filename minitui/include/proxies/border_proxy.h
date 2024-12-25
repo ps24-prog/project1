@@ -1,5 +1,5 @@
-#ifndef tui_border_proxy_H__
-#define tui_border_proxy_H__
+#ifndef BORDER_PROXY_H__
+#define BORDER_PROXY_H__
 
 #include <minitui.h>
 

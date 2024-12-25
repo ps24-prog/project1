@@ -9,6 +9,8 @@ tui_widget::tui_widget(
 , updated(false)
 , instaniated(false)
 , reset_block(false)
+, hovers(false)
+, focused(false)
 , parent(parent) 
 , unproxy(NULL)
 , frame(NULL)
@@ -29,10 +31,10 @@ tui_widget::position_interpreter (
   tui_point point
 ) const {
   if (!point.is_in(area)) {
-    Warn("Point not in widget!");
+    // Warn("Point not in widget!");
   }
   // point.rect->log_rect();
-  assert(point.is_valid());
+  // assert(point.is_valid());
   return point - area.head;
 }
 
@@ -45,6 +47,23 @@ tui_widget::position_mapper (
     Warn("Point not in widget!");
   }
   return res_point;
+}
+
+// a global point, we need to convert it to local point
+tui_point
+tui_widget::gbl_point_interpreter (
+  tui_point point
+) const {
+  // Debug("current: %d %d", point.x, point.y);
+  // task phase0: convert a global point to a local point according `frame`
+}
+
+// a local point, we need to convert it to global point
+tui_point
+tui_widget::gbl_point_mapper (
+  tui_point local_point
+) const {
+  // task phase0: convert a local point to a global point according `frame`
 }
 
 tui_widget *
@@ -112,7 +131,7 @@ tui_event *
 tui_widget::on_child_exit (
   tui_widget *child
 ) {
-  Debug("Child %d %p %s exited", children.size(), child, child->name);
+  Debug("Child %lld %p %s exited", children.size(), child, child->name);
   // if not root, do nothing
   if (this->unproxy_penetrator() != root) {
     return NULL;
@@ -138,7 +157,7 @@ tui_widget::delete_widget (
       tui_erase_widget(widget);
       if (!widget->parent) {
         tui_assert(root == widget);
-        tui_assert(widget->children.empty());
+        // tui_assert(widget->children.empty());
         Debug("Root widget deleted");
       } else {
         // children become orphans
@@ -227,10 +246,21 @@ tui_widget::unproxy_penetrator() const {
   return (tui_widget *) this;
 }
 
+tui_widget *
+tui_widget::get_window() const {
+  // task phase0: get the window the widget belonging to
+}
+
+bool
+tui_widget::is_hovers() const {
+  // task phase0: check whether a widget is hovered by mouse
+}
+
 void
 tui_widget::reset_area(
   tui_rect area
 ) {
+  this->on_area_change(area);
   if (this->proxy()) {
     this->proxy()->reset_area(
       tui_rect(
@@ -240,6 +270,24 @@ tui_widget::reset_area(
     );
   }
   this->area = area;
+}
+
+void
+tui_widget::on_area_change(
+  tui_rect new_area
+) {
+  Debug("Widget %s area changed", this->name);
+}
+
+void
+tui_widget::update() {
+  return ;
+}
+
+void
+tui_widget::update_hovers() {
+  // task phase0: update the `hovers` variable according to current state
+  // remember to set `updated`
 }
 
 tui_widget *root;

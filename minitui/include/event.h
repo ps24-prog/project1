@@ -6,6 +6,9 @@
 
 #include "keycode.h"
 
+void tui_set_gbl_mouse_point(tui_point point);
+tui_point tui_get_gbl_mouse_point();
+
 struct event;
 
 // SGR mouse event codes
@@ -15,6 +18,7 @@ enum tui_mouse_event_type {
   MOUSE_RIGHT_CLICK=2,
   MOUSE_MOVE=35,
   MOUSE_SCROLL=64,
+  MOUSE_FADE_OUT=128
 };
 
 enum tui_event_type {
@@ -38,6 +42,10 @@ struct tui_mouse_event {
   {}
   tui_point get_point() const {
     return tui_point(x, y);
+  }
+  void translate(tui_point head) {
+    x -= head.x;
+    y -= head.y;
   }
   static void log_mouse_event(const tui_mouse_event *mouse_event, bool trace=false);
 };
@@ -67,18 +75,24 @@ struct tui_exit_event {
   tui_exit_event(int retcode) : retcode(retcode) {}
 };
 
+struct tui_widget;
+
 struct tui_event {
   int event_type;
   void *event_body;
+  tui_widget *event_target;
 
+  tui_event *translate_mouse_event(tui_point head);
   bool check_key(char key, bool strict=true);
+  tui_point check_mouse_move();
   
   static void log_event(const tui_event *event, bool trace=false);
   static tui_event *exit_on_key(tui_event *event, char key, int retcode=0);
 
-  tui_event(int event_type, void *event_body) 
+  tui_event(int event_type, void *event_body, tui_widget *event_target=NULL) 
     : event_type(event_type)
     , event_body(event_body)
+    , event_target(event_target)
   {}
   ~tui_event();
 };

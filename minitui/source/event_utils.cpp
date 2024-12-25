@@ -57,6 +57,22 @@ tui_kbd_event::check_key(
   return code == key;
 }
 
+tui_event *
+tui_event::translate_mouse_event(
+  tui_point head
+) {
+  auto event = this;
+  if (event->event_type != TUI_MOUSE_EVENT) {
+    Warn("Translate a non-mouse event");
+    return event;
+  }
+  else {
+    auto mouse_event = (tui_mouse_event *) event->event_body;
+    mouse_event->translate(head);
+    return event;
+  }
+}
+
 bool
 tui_event::check_key(
   char key,
@@ -69,6 +85,18 @@ tui_event::check_key(
   else {
     auto kbd_event = (tui_kbd_event *) event->event_body;
     return kbd_event->check_key(key, strict);
+  }
+}
+
+tui_point
+tui_event::check_mouse_move() {
+  auto event = this;
+  if (event->event_type != TUI_MOUSE_EVENT) {
+    return tui_point(-1, -1);
+  }
+  else {
+    auto mouse_event = (tui_mouse_event *) event->event_body;
+    return (mouse_event->type == MOUSE_MOVE) ? mouse_event->get_point() : tui_point(-1, -1);
   }
 }
 

@@ -15,9 +15,12 @@ struct tui_widget {
   bool updated;
   bool instaniated;
   bool reset_block;
+  bool hovers;
+  bool focused;
+
   tui_widget *parent;
   tui_widget *unproxy;
-  tui_frame *frame;
+  tui_widget *frame;
   int retcode;
   int livecnt;
   bool deleted;
@@ -40,11 +43,29 @@ struct tui_widget {
   void transform_widget(tui_widget *target);
   void proxize_widget(tui_widget *proxy);
   void reset_area(tui_rect area);
+
+  // change the point from global to local
+  tui_point gbl_point_interpreter(tui_point point) const;
+  // change the point from local to global
+  tui_point gbl_point_mapper(tui_point local_point) const;
+
+  bool contains_global(tui_point point) const {
+    return gbl_point_interpreter(point).is_in_local(area);
+  }
+  bool contains_local(tui_point point) const {
+    return point.is_in_local(area);
+  }
   
   virtual tui_widget *proxy() const;
   tui_widget *proxy_penetrator() const;
   // tui_widget *operator -> () const {return proxy_penetrator();}
   tui_widget *unproxy_penetrator() const;
+  tui_widget *get_window() const;
+  bool is_hovers() const;
+
+  bool is_focused() const {
+    return unproxy_penetrator()->focused;
+  }
 
   virtual void set_updated() {
     proxy_penetrator()->updated = true;
@@ -62,13 +83,18 @@ struct tui_widget {
   std::vector<tui_widget *> &get_children() const {
     return unproxy_penetrator()->children;
   }
-  tui_frame *get_frame() const {
+  tui_widget *get_frame() const {
     return unproxy_penetrator()->frame;
   }
 
   virtual tui_event *on_event(tui_event *event);
   virtual void draw(tui_point point) const;
+
+  virtual void update();
+  void update_hovers();
+
   virtual tui_event *on_child_exit(tui_widget *child);
+  virtual void on_area_change(tui_rect new_area);
   virtual ~tui_widget();
 };
 

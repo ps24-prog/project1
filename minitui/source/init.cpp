@@ -99,7 +99,7 @@ void tui_terminal_init() {
 #endif
 
   ANSI_ENABLE(ANSI_MOUSE);
-  // ANSI_ENABLE(ANSI_ANY_EVENT);
+  ANSI_ENABLE(ANSI_ANY_EVENT);
   ANSI_ENABLE(ANSI_SGR);
 
   // enable paste mode

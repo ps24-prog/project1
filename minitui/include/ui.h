@@ -17,6 +17,7 @@ void tui_ui_init();
 void tui_focus_on(tui_point point);
 void tui_draw();
 void tui_reg_widget(tui_widget *widget);
+tui_widget *tui_look_widget(tui_point point);
 void tui_erase_widget(tui_widget *widget);
 void tui_reset_widget(tui_widget *widget, tui_rect area);
 void tui_adjust_widget(tui_widget *widget, tui_rect area, bool proxy_penetrate=true);

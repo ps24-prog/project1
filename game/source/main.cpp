@@ -6,12 +6,12 @@
 tui_widget *reg_mainscr(tui_point head, tui_point tail, const char *msg) {
   auto mainscr_0 = new mainscr(tui_rect(head, tail));
   mainscr_0->set_global_formatter(
-    tui_formatter(0x0063065fu, 0x00ffffffu)
+    tui_formatter(TUI_NJU_PURPLE, TUI_WHITE_V)
   );
 
   mainscr_0->set_central_message(
     msg,
-    tui_formatter(0x0063065fu, 0x00ffffffu)
+    tui_formatter(TUI_NJU_PURPLE, TUI_WHITE_V)
   );
 
   root->create_widget(mainscr_0);

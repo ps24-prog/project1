@@ -31,4 +31,38 @@ struct tui_color {
 
 typedef tui_color tui_formatter;
 
+#define TUI_WHITE_V 0xccccccu
+#define TUI_GREEN_V 0x13a10eu
+#define TUI_RED_V 0xc50f1fu
+#define TUI_BLUE_V 0x003fdau
+#define TUI_YELLOW_V 0xc19c00u
+#define TUI_PURPLE_V 0x881798u
+#define TUI_CYAN_V 0x3a96ddu
+#define TUI_BLACK_V 0x0c0c0cu
+
+#define TUI_LIGHT_WHITE_V 0xffffffu
+#define TUI_LIGHT_GREEN_V 0x16c60cu
+#define TUI_LIGHT_RED_V 0xff4a4au
+#define TUI_LIGHT_BLUE_V 0x3b78ffu
+#define TUI_LIGHT_YELLOW_V 0xf9f1a5u
+#define TUI_LIGHT_PURPLE_V 0xb4009eu
+#define TUI_LIGHT_CYAN_V 0x61d6d6u
+#define TUI_LIGHT_BLACK_V 0x767676u
+
+#define TUI_NJU_PURPLE 0x63065fu
+
+enum tui_eight_colors {
+  TUI_WHITE,
+  TUI_GREEN,
+  TUI_RED,
+  TUI_BLUE,
+  TUI_YELLOW,
+  TUI_PURPLE,
+  TUI_CYAN,
+  TUI_BLACK
+};
+
+extern const uint32_t tui_eight_colors_v[];
+extern const uint32_t tui_eight_colors_light_v[];
+
 #endif

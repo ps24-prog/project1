@@ -49,6 +49,7 @@ tui_event *
 tui_widget_proxy::on_event(
   tui_event *event
 ) {
+  Debug("passing event from %s to %s", name, content->name);
   return content->on_event(event);
 }
 
@@ -62,6 +63,11 @@ tui_widget_proxy::on_child_exit(
   tui_widget *child
 ) {
   return content->on_child_exit(child);
+}
+
+void
+tui_widget_proxy::update() {
+  content->update();
 }
 
 tui_widget_proxy::~tui_widget_proxy() {

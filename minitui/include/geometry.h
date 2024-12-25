@@ -19,6 +19,7 @@ struct tui_point {
   tui_point(const tui_point &p, const tui_rect *rect);
   bool is_valid() const;
   bool is_in(const tui_rect &rect) const;
+  bool is_in_local(const tui_rect &rect) const;
   bool operator == (const tui_point &b) const;
   bool operator != (const tui_point &b) const;
   tui_point operator - (const tui_point &b) const;

@@ -7,6 +7,19 @@
 #include <ui.h>
 
 bool mouse_enabled = true;
+tui_point gbl_mouse_point(0, 0);
+std::mutex gbl_mouse_mutex;
+
+void tui_set_gbl_mouse_point(tui_point point) {
+  std::lock_guard<std::mutex> lock(gbl_mouse_mutex);
+  gbl_mouse_point = point;
+}
+
+tui_point tui_get_gbl_mouse_point() {
+  std::lock_guard<std::mutex> lock(gbl_mouse_mutex);
+  return gbl_mouse_point;
+}
+
 
 static
 char
@@ -64,6 +77,10 @@ tui_get_ansi_event() {
       tui_assert(arg_type.second == ';');
       tui_assert(arg_y.second == ';');
       tui_assert(arg_x.second == 'm' || arg_x.second == 'M');
+
+      if (!tui_point(arg_x.first - 1, arg_y.first - 1).is_in(global_rect)) {
+        return NULL;
+      }
 
       auto event = new tui_event(TUI_MOUSE_EVENT, new tui_mouse_event(
         arg_type.first, 
@@ -167,10 +184,12 @@ tui_exec() {
   if (!wl_head) {
     Error("No root widget");
   }
-  // set root widget as default focus
-  focus = wl_head->body;
 
   while (true) {
+    for (auto it = wl_head; it; it = it->next) {
+      it->body->update();
+    }
+    
     tui_draw();
 
     if (gbl_event_queue.empty()) {
@@ -185,6 +204,9 @@ tui_exec() {
     
     switch (event->event_type) {
       case TUI_EXIT_EVENT: {
+        if (event->event_target) {
+          Warn("Not implemented");
+        }
         Debug("Get a exit event");
         final_retcode = \
         ((tui_exit_event *) event->event_body)->retcode;
@@ -213,6 +235,9 @@ tui_exec() {
     }
 
     tui_widget *current = focus;
+    if (event->event_type == TUI_MOUSE_EVENT) {
+      current = tui_look_widget(((tui_mouse_event *) event->event_body)->get_point());
+    }
 
     while (current && event) {
       // invariant: event is not NULL and not TUI_EXIT_EVENT
