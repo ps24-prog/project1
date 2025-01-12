@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <cstring>
 #include <cctype>
+#include <cstdarg>
 #include <queue>
 #include <cstdarg>
 #include <vector>
