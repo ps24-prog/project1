@@ -52,6 +52,11 @@ struct tui_widget {
   bool contains_global(tui_point point) const {
     return gbl_point_interpreter(point).is_in_local(area);
   }
+
+  bool contains(tui_point point) const {
+    return point.is_in(area);
+  }
+
   bool contains_local(tui_point point) const {
     return point.is_in_local(area);
   }
@@ -81,6 +86,7 @@ struct tui_widget {
       updated = false;
     }
   };
+
   virtual bool get_updated() const {
     return proxy_penetrator()->updated;
   }
@@ -93,6 +99,10 @@ struct tui_widget {
   }
   tui_widget *get_frame() const {
     return unproxy_penetrator()->frame;
+  }
+
+  tui_point translate_mouse_event(tui_mouse_event *event) const {
+    return gbl_point_interpreter(event->get_point());
   }
 
   virtual tui_event *on_event(tui_event *event);
