@@ -25,8 +25,8 @@ mainscr::on_event(
     }
     else if (kbd_event->check_key('p')) {
       create_widget(new tui_ncanvas(
-        tui_rect(tui_point(SCR_HEIGHT - 5, SCR_WIDTH / 2), area.tail)
-      ));
+        tui_rect(global_rect.tail - tui_point(5, 5), global_rect.tail)
+      ))->set_attrs({tui_fmt("quit %d", 'q')});
       delete event;
       return NULL;
     }

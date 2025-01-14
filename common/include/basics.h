@@ -10,6 +10,7 @@
 #include <cstring>
 #include <cctype>
 #include <queue>
+#include <cstdarg>
 #include <vector>
 #include <algorithm>
 #include <thread>

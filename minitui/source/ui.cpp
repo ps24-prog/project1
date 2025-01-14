@@ -145,6 +145,7 @@ tui_reg_widget(
   tui_append_widget(widget);
   tui_update_full_map(widget);
   tui_set_focus(widget);
+  widget->set_updated();
 }
 
 void

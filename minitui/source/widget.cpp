@@ -81,6 +81,13 @@ tui_widget *
 tui_widget::create_widget (
   tui_widget *widget
 ) {
+  if (unproxy) {
+    return unproxy_penetrator()->create_widget(widget);
+  }
+  if (get_frame()) {
+    return get_frame()->create_widget(widget);
+  }
+  Debug("%s Creating widget %s", name, widget->name);
   tui_reg_widget(widget);
   return add_widget(widget);
 }
