@@ -6,6 +6,8 @@
 #include "../../common/include/debug.h"
 #include "../../common/include/tinyfmt.h"
 #include "../../common/include/box.h"
+#include "../../common/include/bmp.h"
+
 
 #include "geometry.h"
 #include "keycode.h"
@@ -14,6 +16,7 @@
 #include "ui.h"
 #include "widget.h"
 #include "widgets/formatter.h"
+#include "pixelmap.h"
 #include "widgets/msgbox.h"
 #include "widgets/dummy.h"
 #include "widgets/canvas.h"

@@ -25,6 +25,8 @@ struct tui_color {
   void set() const {
     if (valid)
       ANSI_CMD(ansi_code);
+    else
+      ANSI_CMD(ANSI_RST);
     return ;
   }
 };

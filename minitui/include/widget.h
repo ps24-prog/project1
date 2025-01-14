@@ -68,10 +68,18 @@ struct tui_widget {
   }
 
   virtual void set_updated() {
-    proxy_penetrator()->updated = true;
+    if (proxy()) {
+      proxy_penetrator()->set_updated();
+    } else {
+      updated = true;
+    }
   };
   virtual void reset_updated() {
-    proxy_penetrator()->updated = false;
+    if (proxy()) {
+      proxy_penetrator()->reset_updated();
+    } else {
+      updated = false;
+    }
   };
   virtual bool get_updated() const {
     return proxy_penetrator()->updated;

@@ -108,6 +108,12 @@ $(BUILD_DIR)/nju_universalis: $(OBJS)
 shell: $(BUILD_DIR)/shell compile
 	@$(BUILD_DIR)/shell
 
+game: compile
+	@$(BUILD_DIR)/nju_universalis
+
+game-gdb: compile
+	@gdb $(BUILD_DIR)/nju_universalis -ex "start"
+
 test_shell:
 	@$(MAKE) shell TEST=1
 
@@ -117,6 +123,9 @@ test_compile:
 compile: $(BUILD_DIR)/nju_universalis
 	@echo Compilation finished!
 
+count:
+	@find -name "*.cpp" -or -name "*.h" | xargs wc -l
+
 # run: compile
 # 	@$(BUILD_DIR)/nju_universalis 2>$(BUILD_DIR)/game.log
 
@@ -125,4 +134,4 @@ compile: $(BUILD_DIR)/nju_universalis
 clean:
 	-@rm -rf build
 
-.PHONY: clean compile run test shell test_shell test_compile
+.PHONY: clean compile run test shell test_shell test_compile game
