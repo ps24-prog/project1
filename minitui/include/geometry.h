@@ -49,6 +49,7 @@ struct tui_rect {
     return tui_rect(tui_point(0, 0), tail - head);
   }
   bool operator == (const tui_rect &b) const;
+  bool operator != (const tui_rect &b) const;
   int height() const;
   int width() const;
   bool isvalid() const;

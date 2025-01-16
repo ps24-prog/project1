@@ -79,6 +79,13 @@ tui_rect::operator == (
   return head == b.head && tail == b.tail;
 }
 
+bool
+tui_rect::operator != (
+  const tui_rect &b
+) const {
+  return !(*this == b);
+}
+
 int
 tui_rect::height() const {
   return tail.x - head.x + 1;
